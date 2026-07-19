@@ -1,0 +1,91 @@
+<div class="auth-page-container">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <h1 class="brand-title">CV Analyzer</h1>
+      <p class="brand-subtitle">Analyze and optimize your resume effortlessly.</p>
+    </div>
+
+    <!-- Login Form -->
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">email</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [ngClass]="{ 'invalid-input': loginForm.get('email')?.touched && loginForm.get('email')?.invalid }"
+          />
+        </div>
+        <!-- Email validation messages -->
+        @if (loginForm.get('email')?.touched && loginForm.get('email')?.invalid) {
+          <div class="validation-message">
+            @if (loginForm.get('email')?.hasError('required')) {
+              Email address is required.
+            } @else if (loginForm.get('email')?.hasError('pattern')) {
+              Please enter a valid email address.
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">lock</span>
+          <input
+            id="password"
+            [type]="isPasswordHidden() ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="Enter your password"
+            [ngClass]="{ 'invalid-input': loginForm.get('password')?.touched && loginForm.get('password')?.invalid }"
+          />
+          <button
+            type="button"
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <span class="material-icons">
+              {{ isPasswordHidden() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        <!-- Password validation messages -->
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
+          <div class="validation-message">
+            Password is required.
+          </div>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="loginForm.invalid || isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Signing In...
+        } @else {
+          Sign In
+        }
+      </button>
+    </form>
+
+    <!-- Footer Redirect Link -->
+    <div class="auth-footer">
+      <p>
+        Don't have an account?
+        <a routerLink="/signup" class="auth-link">Sign Up</a>
+      </p>
+    </div>
+  </div>
+</div>

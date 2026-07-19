@@ -1,0 +1,154 @@
+<div class="auth-page-container">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-header">
+      <h1 class="brand-title">CV Analyzer</h1>
+      <p class="brand-subtitle">Analyze and optimize your resume effortlessly.</p>
+    </div>
+
+    <!-- Signup Form -->
+    <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" novalidate>
+      
+      <!-- Full Name Field -->
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">person</span>
+          <input
+            id="name"
+            type="text"
+            formControlName="name"
+            placeholder="Enter your name"
+            [ngClass]="{ 'invalid-input': signupForm.get('name')?.touched && signupForm.get('name')?.invalid }"
+          />
+        </div>
+        @if (signupForm.get('name')?.touched && signupForm.get('name')?.invalid) {
+          <div class="validation-message">
+            Full Name is required (minimum 2 characters).
+          </div>
+        }
+      </div>
+
+      <!-- Email Field -->
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">email</span>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+            [ngClass]="{ 'invalid-input': signupForm.get('email')?.touched && signupForm.get('email')?.invalid }"
+          />
+        </div>
+        @if (signupForm.get('email')?.touched && signupForm.get('email')?.invalid) {
+          <div class="validation-message">
+            @if (signupForm.get('email')?.hasError('required')) {
+              Email address is required.
+            } @else if (signupForm.get('email')?.hasError('pattern')) {
+              Please enter a valid email address.
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Password Field -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="material-icons input-icon">lock</span>
+          <input
+            id="password"
+            [type]="isPasswordHidden() ? 'password' : 'text'"
+            formControlName="password"
+            placeholder="Create password"
+            [ngClass]="{ 'invalid-input': signupForm.get('password')?.touched && signupForm.get('password')?.invalid }"
+          />
+          <button
+            type="button"
+            class="toggle-password-btn"
+            (click)="togglePasswordVisibility()"
+            tabindex="-1"
+          >
+            <span class="material-icons">
+              {{ isPasswordHidden() ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        
+        <!-- Live Strength Meter -->
+        @if (passwordValue().length > 0) {
+          <div class="strength-meter-container">
+            <div class="strength-bar-track">
+              <div 
+                class="strength-bar-fill" 
+                [ngClass]="pwdMetrics().colorClass"
+                [style.width.%]="(pwdMetrics().score / 5) * 100">
+              </div>
+            </div>
+            <div class="strength-label">
+              Password Strength: <span [ngClass]="pwdMetrics().colorClass" class="strength-text-label">{{ pwdMetrics().label }}</span>
+            </div>
+          </div>
+
+          <!-- Live Requirements Checklist -->
+          <div class="requirements-checklist">
+            <div class="check-item" [ngClass]="{ 'valid': pwdMetrics().requirements.length }">
+              <span class="material-icons check-icon">
+                {{ pwdMetrics().requirements.length ? 'check_circle' : 'radio_button_unchecked' }}
+              </span>
+              <span>At least 8 characters</span>
+            </div>
+            <div class="check-item" [ngClass]="{ 'valid': pwdMetrics().requirements.upper }">
+              <span class="material-icons check-icon">
+                {{ pwdMetrics().requirements.upper ? 'check_circle' : 'radio_button_unchecked' }}
+              </span>
+              <span>At least 1 uppercase letter</span>
+            </div>
+            <div class="check-item" [ngClass]="{ 'valid': pwdMetrics().requirements.lower }">
+              <span class="material-icons check-icon">
+                {{ pwdMetrics().requirements.lower ? 'check_circle' : 'radio_button_unchecked' }}
+              </span>
+              <span>At least 1 lowercase letter</span>
+            </div>
+            <div class="check-item" [ngClass]="{ 'valid': pwdMetrics().requirements.num }">
+              <span class="material-icons check-icon">
+                {{ pwdMetrics().requirements.num ? 'check_circle' : 'radio_button_unchecked' }}
+              </span>
+              <span>At least 1 number</span>
+            </div>
+            <div class="check-item" [ngClass]="{ 'valid': pwdMetrics().requirements.spec }">
+              <span class="material-icons check-icon">
+                {{ pwdMetrics().requirements.spec ? 'check_circle' : 'radio_button_unchecked' }}
+              </span>
+              <span>At least 1 special character</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Submit Button -->
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="signupForm.invalid || isLoading()"
+      >
+        @if (isLoading()) {
+          <span class="spinner"></span>
+          Creating Account...
+        } @else {
+          Create Account
+        }
+      </button>
+    </form>
+
+    <!-- Footer Redirect Link -->
+    <div class="auth-footer">
+      <p>
+        Already have an account?
+        <a routerLink="/login" class="auth-link">Login</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,13 @@
+<div class="home-container">
+  <div class="welcome-card">
+    <span class="material-icons welcome-icon">verified_user</span>
+    <h1>Welcome, {{ authService.currentUser()?.name || 'User' }}!</h1>
+    <p class="subtitle">This is Home Page</p>
+    <span class="muted-note">(Will be updated later.)</span>
+    
+    <button class="btn-logout" (click)="onLogout()">
+      <span class="material-icons">logout</span>
+      Log Out
+    </button>
+  </div>
+</div>
