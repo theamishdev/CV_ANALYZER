@@ -7,11 +7,12 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: var(--bg-body);
+  color: var(--text-main);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Theme Design Tokens */
@@ -21,6 +22,7 @@ body {
   --primary-light: #eff6ff;
   --text-main: #0f172a;
   --text-muted: #64748b;
+  --bg-body: #f8fafc;
   --bg-card: #ffffff;
   --border: #e2e8f0;
   --border-focus: #3b82f6;
@@ -29,6 +31,43 @@ body {
   --success: #10b981;
   --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
   --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -6px rgba(0, 0, 0, 0.04);
+  
+  --auth-bg-start: #f8fafc;
+  --auth-bg-end: #f1f5f9;
+  --input-bg: #fafafa;
+  --input-focus-bg: #ffffff;
+  --auth-card-bg: rgba(255, 255, 255, 0.75);
+  --auth-card-border: rgba(226, 232, 240, 0.8);
+  --auth-card-shadow-inset: rgba(255, 255, 255, 0.6);
+  --sidebar-bg: rgba(255, 255, 255, 0.85);
+  --history-card-bg: rgba(255, 255, 255, 0.7);
+}
+
+.dark-theme {
+  --primary: #3b82f6;
+  --primary-hover: #60a5fa;
+  --primary-light: rgba(59, 130, 246, 0.15);
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --bg-body: #090d16;
+  --bg-card: #151c2c;
+  --border: #1e293b;
+  --border-focus: #60a5fa;
+  --error: #f87171;
+  --error-bg: rgba(239, 68, 68, 0.15);
+  --success: #34d399;
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+  --shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -6px rgba(0, 0, 0, 0.3);
+  
+  --auth-bg-start: #070a13;
+  --auth-bg-end: #0c1122;
+  --input-bg: #0f1626;
+  --input-focus-bg: #151d30;
+  --auth-card-bg: rgba(21, 28, 44, 0.75);
+  --auth-card-border: rgba(30, 41, 59, 0.8);
+  --auth-card-shadow-inset: rgba(255, 255, 255, 0.05);
+  --sidebar-bg: rgba(21, 28, 44, 0.85);
+  --history-card-bg: rgba(21, 28, 44, 0.7);
 }
 
 /* Common Auth Layout Styles */
@@ -40,7 +79,8 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 24px;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--auth-bg-start) 0%, var(--auth-bg-end) 100%);
+  transition: background 0.3s ease;
 }
 
 /* Animated BG Blobs */
@@ -107,21 +147,21 @@ body {
 .auth-card {
   position: relative;
   z-index: 1;
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--auth-card-bg);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-radius: 24px;
   padding: 40px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05), 0 15px 25px -10px rgba(0, 0, 0, 0.03), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05), 0 15px 25px -10px rgba(0, 0, 0, 0.03), inset 0 0 0 1px var(--auth-card-shadow-inset);
+  border: 1px solid var(--auth-card-border);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, border-color 0.3s ease;
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(255, 255, 255, 0.8);
+    box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.08), 0 20px 30px -10px rgba(0, 0, 0, 0.04), inset 0 0 0 1px var(--auth-card-shadow-inset);
   }
 }
 
@@ -185,9 +225,9 @@ body {
     font-size: 14px;
     font-weight: 500;
     color: var(--text-main);
-    background-color: #fafafa;
+    background-color: var(--input-bg);
     outline: none;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease, border-color 0.3s ease;
 
     &::placeholder {
       color: #94a3b8;
@@ -195,7 +235,7 @@ body {
 
     &:focus {
       border-color: var(--border-focus);
-      background-color: #ffffff;
+      background-color: var(--input-focus-bg);
       box-shadow: 0 0 0 4px var(--primary-light);
       
       ~ .input-icon {
@@ -206,7 +246,7 @@ body {
 
     &.invalid-input {
       border-color: var(--error);
-      background-color: #fffafb;
+      background-color: var(--error-bg);
 
       &:focus {
         box-shadow: 0 0 0 4px var(--error-bg);
@@ -237,7 +277,7 @@ body {
 
     &:hover {
       color: var(--text-main);
-      background-color: #f1f5f9;
+      background-color: var(--primary-light);
     }
     
     &:active {

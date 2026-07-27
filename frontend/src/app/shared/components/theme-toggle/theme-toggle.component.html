@@ -1,0 +1,33 @@
+<div class="theme-toggle-container" (click)="toggleTheme()">
+  <span class="theme-label light-label" [class.active]="!isDark">Light</span>
+  
+  <div class="toggle-track" [class.dark]="isDark">
+    <!-- Light Mode Decorations (Cloud bubbles) -->
+    <div class="decorations light-decorations">
+      <span class="bubble bubble-1"></span>
+      <span class="bubble bubble-2"></span>
+      <span class="bubble bubble-3"></span>
+    </div>
+    
+    <!-- Dark Mode Decorations (Stars) -->
+    <div class="decorations dark-decorations">
+      <!-- Star 1 (Medium) -->
+      <svg class="star star-1" viewBox="0 0 24 24">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>
+      <!-- Star 2 (Small) -->
+      <svg class="star star-2" viewBox="0 0 24 24">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>
+      <!-- Star 3 (Tiny) -->
+      <svg class="star star-3" viewBox="0 0 24 24">
+        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+      </svg>
+    </div>
+    
+    <!-- Sliding Knob -->
+    <div class="toggle-knob"></div>
+  </div>
+  
+  <span class="theme-label dark-label" [class.active]="isDark">Dark</span>
+</div>
