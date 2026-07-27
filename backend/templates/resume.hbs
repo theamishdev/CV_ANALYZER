@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resume</title>
+  <style>
+    body {
+      font-family: 'Times New Roman', Times, Georgia, serif;
+      color: #000000;
+      margin: 0;
+      padding: 0;
+      font-size: 10pt;
+      line-height: 1.4;
+      background: #ffffff;
+    }
+    .resume-page {
+      padding: 0.75in;
+      box-sizing: border-box;
+      max-width: 8.27in; /* A4 width */
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .name {
+      font-size: 22pt;
+      font-weight: bold;
+      margin: 0 0 6px 0;
+      color: #000000;
+    }
+    .contact-line {
+      font-size: 10pt;
+      color: #000000;
+      word-spacing: 1px;
+    }
+    .contact-line a {
+      color: #000000;
+      text-decoration: none;
+    }
+    .contact-line a:hover {
+      text-decoration: underline;
+    }
+    .section-title {
+      font-size: 11pt;
+      font-weight: bold;
+      border-bottom: 1px solid #000000;
+      margin-top: 14px;
+      margin-bottom: 6px;
+      padding-bottom: 1px;
+      text-transform: capitalize;
+    }
+    .entry-card {
+      margin-bottom: 8px;
+    }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-weight: bold;
+      font-size: 10pt;
+    }
+    .entry-subheader {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-style: italic;
+      font-size: 10pt;
+      margin-top: 1px;
+      margin-bottom: 2px;
+    }
+    .bullet-list {
+      margin: 2px 0 4px 0;
+      padding-left: 20px;
+    }
+    .bullet-list li {
+      margin-bottom: 2px;
+      font-size: 10pt;
+    }
+    .skills-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    .skills-list li {
+      margin-bottom: 2px;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="resume-page">
+    
+    <!-- Name and Contact -->
+    <div class="header">
+      <h1 class="name">{{contact.fullName}}</h1>
+      <div class="contact-line">
+        {{#if contact.linkedin}}<a href="{{contact.linkedin}}">LinkedIn</a> &nbsp;|&nbsp; {{/if}}
+        {{#if contact.portfolio}}<a href="{{contact.portfolio}}">GitHub</a> &nbsp;|&nbsp; {{/if}}
+        {{#if contact.email}}Email: <a href="mailto:{{contact.email}}">{{contact.email}}</a> &nbsp;|&nbsp; {{/if}}
+        {{#if contact.phone}}Mobile: {{contact.phone}}{{/if}}
+      </div>
+    </div>
+
+    <!-- Summary -->
+    {{#if summary}}
+    <div class="cv-section">
+      <div class="section-title">Summary</div>
+      <p style="margin: 2px 0; font-size: 10pt; text-align: justify;">{{summary}}</p>
+    </div>
+    {{/if}}
+
+    <!-- Skills -->
+    {{#if skills.length}}
+    <div class="cv-section">
+      <div class="section-title">Skills</div>
+      <ul class="skills-list">
+        {{#each skills}}
+        <li><strong>{{this.category}}:</strong> {{#each this.items}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Experience / Internship -->
+    {{#if experience.length}}
+    <div class="cv-section">
+      <div class="section-title">Experience</div>
+      {{#each experience}}
+      <div class="entry-card">
+        <div class="entry-header">
+          <span>{{this.company}}</span>
+          <span>{{this.duration}}</span>
+        </div>
+        <div class="entry-subheader">
+          <span>{{this.role}}</span>
+          <span>{{this.location}}</span>
+        </div>
+        <ul class="bullet-list">
+          {{#each this.highlights}}
+          {{#if this}}<li>{{this}}</li>{{/if}}
+          {{/each}}
+        </ul>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    <!-- Projects -->
+    {{#if projects.length}}
+    <div class="cv-section">
+      <div class="section-title">Projects</div>
+      {{#each projects}}
+      <div class="entry-card">
+        <div class="entry-header">
+          <span>{{this.title}}</span>
+          <span>{{this.duration}}</span>
+        </div>
+        <div class="entry-subheader">
+          <span>{{#each this.technologies}}{{this}}{{#unless @last}}, {{/unless}}{{/each}}</span>
+          <span>{{#if this.link}}<a href="{{this.link}}" target="_blank">Link</a>{{/if}}</span>
+        </div>
+        <ul class="bullet-list">
+          {{#if this.description}}<li>{{this.description}}</li>{{/if}}
+        </ul>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    <!-- Certifications -->
+    {{#if certifications.length}}
+    <div class="cv-section">
+      <div class="section-title">Certificates</div>
+      <ul class="bullet-list">
+        {{#each certifications}}
+        <li style="margin-bottom: 2px;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline;">
+            <span><strong>{{this.name}}</strong> -- {{this.issuer}}</span>
+            <span>{{this.date}}</span>
+          </div>
+        </li>
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Achievements -->
+    {{#if achievements.length}}
+    <div class="cv-section">
+      <div class="section-title">Achievements</div>
+      <ul class="bullet-list">
+        {{#each achievements}}
+        {{#if this}}<li>{{this}}</li>{{/if}}
+        {{/each}}
+      </ul>
+    </div>
+    {{/if}}
+
+    <!-- Education -->
+    {{#if education.length}}
+    <div class="cv-section">
+      <div class="section-title">Education</div>
+      {{#each education}}
+      <div class="entry-card">
+        <div class="entry-header">
+          <span>{{this.institution}}</span>
+          <span>{{this.duration}}</span>
+        </div>
+        <div class="entry-subheader">
+          <span>{{this.degree}}</span>
+          <span>GPA/Percentage: {{this.gpa}} {{#if this.location}} | {{this.location}}{{/if}}</span>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+  </div>
+
+</body>
+</html>

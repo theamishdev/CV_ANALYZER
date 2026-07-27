@@ -1,0 +1,120 @@
+<div class="interactive-cv-container" *ngIf="cvData">
+  
+  <header class="cv-header">
+    <input class="name-input" [(ngModel)]="cvData.contact.fullName" placeholder="Full Name" />
+    <div class="contact-grid">
+      <input [(ngModel)]="cvData.contact.email" placeholder="Email" type="email" />
+      <input [(ngModel)]="cvData.contact.phone" placeholder="Phone" />
+      <input [(ngModel)]="cvData.contact.location" placeholder="Location" />
+      <input [(ngModel)]="cvData.contact.linkedin" placeholder="LinkedIn URL" />
+      <input [(ngModel)]="cvData.contact.portfolio" placeholder="Portfolio/GitHub" />
+    </div>
+  </header>
+
+  <section class="cv-section" *ngIf="cvData.summary !== undefined">
+    <h3>Professional Summary</h3>
+    <textarea [(ngModel)]="cvData.summary" rows="4"></textarea>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.experience && cvData.experience.length > 0">
+    <h3>Experience</h3>
+    <div class="entry-card" *ngFor="let exp of cvData.experience; let i = index">
+      <div class="entry-header">
+        <input class="bold-input" [(ngModel)]="exp.role" placeholder="Job Title" />
+        <input class="align-right" [(ngModel)]="exp.duration" placeholder="Duration (e.g., Jan 2020 - Present)" />
+      </div>
+      <div class="entry-subheader">
+        <input [(ngModel)]="exp.company" placeholder="Company Name" />
+        <input class="align-right" [(ngModel)]="exp.location" placeholder="Location" />
+      </div>
+      <div class="bullet-list">
+        <div class="bullet-item" *ngFor="let highlight of exp.highlights; let j = index; trackBy: trackByFn">
+          <span>•</span>
+          <textarea [(ngModel)]="exp.highlights[j]" rows="2"></textarea>
+        </div>
+        <button class="add-text-btn" (click)="addHighlight(i)">+ Add Bullet</button>
+      </div>
+    </div>
+    <button class="add-section-btn" (click)="addExperience()">+ Add Experience</button>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.education && cvData.education.length > 0">
+    <h3>Education</h3>
+    <div class="entry-card" *ngFor="let edu of cvData.education; let i = index">
+      <div class="entry-header">
+        <input class="bold-input" [(ngModel)]="edu.degree" placeholder="Degree / Certification" />
+        <input class="align-right" [(ngModel)]="edu.duration" placeholder="Year" />
+      </div>
+      <div class="entry-subheader">
+        <input [(ngModel)]="edu.institution" placeholder="Institution Name" />
+        <input class="align-right" [(ngModel)]="edu.gpa" placeholder="GPA / Score" />
+      </div>
+    </div>
+    <button class="add-section-btn" (click)="addEducation()">+ Add Education</button>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.projects && cvData.projects.length > 0">
+    <h3>Key Projects</h3>
+    <div class="entry-card" *ngFor="let project of cvData.projects; let i = index">
+      <div class="entry-header">
+        <input class="bold-input" [(ngModel)]="project.title" placeholder="Project Title" />
+        <input class="align-right link-input" [(ngModel)]="project.link" placeholder="Project URL" />
+      </div>
+      <div class="tech-stack">
+        <span class="chip" *ngFor="let tech of project.technologies; let j = index; trackBy: trackByFn">
+          <input [(ngModel)]="project.technologies[j]" />
+        </span>
+        <button class="add-text-btn" (click)="addTech(i)">+ Add Tech</button>
+      </div>
+      <textarea [(ngModel)]="project.description" rows="3"></textarea>
+    </div>
+    <button class="add-section-btn" (click)="addProject()">+ Add New Project</button>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.skills && cvData.skills.length > 0">
+    <h3>Skills</h3>
+    <div class="skills-grid">
+      <div class="skill-category" *ngFor="let skillGroup of cvData.skills; let i = index">
+        <input class="bold-input" [(ngModel)]="skillGroup.category" placeholder="Category (e.g., Frontend)" />
+        <div class="tech-stack">
+          <span class="chip" *ngFor="let item of skillGroup.items; let j = index; trackBy: trackByFn">
+            <input [(ngModel)]="skillGroup.items[j]" />
+          </span>
+          <button class="add-text-btn" (click)="addSkillItem(i)">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <button class="add-section-btn" (click)="addSkillCategory()">+ Add Skill Category</button>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.certifications && cvData.certifications.length > 0">
+    <h3>Certifications</h3>
+    <div class="entry-card" *ngFor="let cert of cvData.certifications; let i = index">
+      <div class="entry-header">
+        <input class="bold-input" [(ngModel)]="cert.name" placeholder="Certification Name" />
+        <input class="align-right" [(ngModel)]="cert.date" placeholder="Date Issued" />
+      </div>
+      <input [(ngModel)]="cert.issuer" placeholder="Issuing Organization" />
+    </div>
+    <button class="add-section-btn" (click)="addCertification()">+ Add Certification</button>
+  </section>
+
+  <section class="cv-section" *ngIf="cvData.achievements">
+    <h3>Achievements</h3>
+    <div class="bullet-list">
+      <div class="bullet-item" *ngFor="let ach of cvData.achievements; let i = index; trackBy: trackByFn" style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
+        <span>•</span>
+        <input [(ngModel)]="cvData.achievements[i]" placeholder="Achievement description" style="width: 100%;" />
+      </div>
+      <button class="add-text-btn" (click)="addAchievement()">+ Add Achievement</button>
+    </div>
+  </section>
+
+  <div class="action-bar" style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid rgba(226, 232, 240, 0.6);">
+    <button class="primary-btn" (click)="generatePDF()">Confirm & Download PDF</button>
+    <button class="secondary-btn" (click)="saveCV()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; padding: 12px 24px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform='translateY(0)'">
+      <span class="material-icons" style="font-size: 18px;">save</span>
+      <span>Save CV to MongoDB</span>
+    </button>
+  </div>
+</div>

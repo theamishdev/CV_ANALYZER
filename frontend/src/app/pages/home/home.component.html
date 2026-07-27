@@ -1,0 +1,857 @@
+<div class="app-layout-container">
+  <!-- Left Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-top">
+      <div class="sidebar-brand">
+        <span class="material-icons logo-icon">insights</span>
+        <h1 class="logo-title">CV Analyzer</h1>
+      </div>
+      
+      <nav class="sidebar-menu">
+        <a class="menu-item" [class.active]="activeSidebarTab() === 'workspace'" (click)="activeSidebarTab.set('workspace')">
+          <span class="material-icons">dashboard</span>
+          <span>Workspace</span>
+        </a>
+        <a class="menu-item" [class.active]="activeSidebarTab() === 'history'" (click)="activeSidebarTab.set('history'); selectedHistoryItem.set(historyItems()[0] || null)">
+          <span class="material-icons">history</span>
+          <span>History</span>
+        </a>
+      </nav>
+    </div>
+    
+    <!-- Profile Section inside Sidebar -->
+    <div class="sidebar-bottom">
+      <div class="sidebar-profile-card" (click)="openProfileModal()">
+        <div class="profile-pic-container">
+          @if (authService.currentUser()?.profilePic) {
+            <img [src]="authService.currentUser()?.profilePic" class="profile-avatar" alt="Avatar" />
+          } @else {
+            <div class="profile-initials">
+              {{ getUserInitials() }}
+            </div>
+          }
+        </div>
+        <div class="profile-card-details">
+          <span class="profile-card-name" [title]="authService.currentUser()?.name || ''">
+            {{ authService.currentUser()?.name }}
+          </span>
+          <span class="profile-card-org" [title]="authService.currentUser()?.company || authService.currentUser()?.college || 'Edit Profile'">
+            {{ authService.currentUser()?.company || authService.currentUser()?.college || 'Add Company/College' }}
+          </span>
+        </div>
+        <button class="btn-profile-edit" title="Edit Profile">
+          <span class="material-icons">chevron_right</span>
+        </button>
+      </div>
+      
+      <button class="btn-logout-sidebar" (click)="onLogout()">
+        <span class="material-icons">logout</span>
+        <span>Log Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Right Main Content Area -->
+  <div class="main-content-wrapper">
+    <!-- Dashboard Background Blobs -->
+    <div class="bg-blobs">
+      <div class="blob blob-1"></div>
+      <div class="blob blob-2"></div>
+      <div class="blob blob-3"></div>
+    </div>
+
+    <!-- Top Simplified Page Header -->
+    <header class="dashboard-header-simple">
+      <div class="header-left">
+        <h2>Resume Evaluation Workspace</h2>
+        <p class="subtitle">Upload and check your curriculum vitae match metrics against industry ATS indexers.</p>
+      </div>
+      <div class="header-right">
+        <span class="user-greeting">
+          Welcome back, <strong>{{ authService.currentUser()?.name }}</strong>
+        </span>
+      </div>
+    </header>
+
+    <!-- Main Grid Dashboard Content -->
+    <main class="dashboard-content">
+      @if (activeSidebarTab() === 'workspace') {
+        <div class="dashboard-grid">
+        
+        <!-- Left Column Container Stack -->
+        <div class="left-column-stack" style="display: flex; flex-direction: column; gap: 32px; width: 100%;">
+          
+          <!-- Left Column: Workspace Card -->
+          <section class="workspace-card" style="min-height: unset; flex-grow: 1;">
+            <div class="card-header">
+              <h2>Resume Workspace</h2>
+              <p class="card-subtitle">Upload your CV to begin scanning for key criteria.</p>
+            </div>
+
+            <div class="workspace-body">
+              @if (uploadState() === 'idle' || uploadState() === 'dragging') {
+                <div class="jd-input-container">
+                  <label for="jobDescription" class="jd-label">
+                    <span class="material-icons">description</span>
+                    <span>Target Job Description (Optional)</span>
+                  </label>
+                  <textarea 
+                    id="jobDescription" 
+                    [(ngModel)]="jobDescription" 
+                    placeholder="Paste the target job description details here to calculate match overlap..." 
+                    class="form-control jd-textarea"
+                    rows="4"
+                  ></textarea>
+                </div>
+              }
+
+              @switch (uploadState()) {
+                @case ('idle') {
+                  <div 
+                    class="upload-dropzone"
+                    (dragover)="onDragOver($event)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event)"
+                    (click)="fileInput.click()"
+                  >
+                    <div class="icon-ring">
+                      <span class="material-icons upload-icon">cloud_upload</span>
+                    </div>
+                    <h3>Drag & Drop your Resume</h3>
+                    <p>or click to browse from local files</p>
+                    <span class="supported-formats">Supports PDF, DOC, DOCX up to 10MB</span>
+                    <input 
+                      #fileInput 
+                      type="file" 
+                      (change)="onFileSelected($event)" 
+                      style="display: none" 
+                      accept=".pdf,.doc,.docx" 
+                    />
+                  </div>
+                }
+                @case ('dragging') {
+                  <div 
+                    class="upload-dropzone active"
+                    (dragover)="onDragOver($event)"
+                    (dragleave)="onDragLeave($event)"
+                    (drop)="onDrop($event)"
+                  >
+                    <div class="icon-ring pulse">
+                      <span class="material-icons upload-icon text-primary">arrow_circle_down</span>
+                    </div>
+                    <h3 class="text-primary">Drop it here!</h3>
+                    <p class="text-primary">Release the file to start uploading</p>
+                  </div>
+                }
+                @case ('analyzing') {
+                  <div class="analysis-loader">
+                    <div class="spinner-container">
+                      <svg class="progress-ring" width="120" height="120">
+                        <circle class="progress-ring__circle-bg" stroke="rgba(226, 232, 240, 0.5)" stroke-width="8" fill="transparent" r="50" cx="60" cy="60"/>
+                        <circle class="progress-ring__circle" stroke="var(--primary)" stroke-width="8" fill="transparent" r="50" cx="60" cy="60" 
+                                [style.stroke-dashoffset]="314.16 - (314.16 * analysisProgress() / 100)" stroke-dasharray="314.16" />
+                      </svg>
+                      <span class="progress-percentage">{{ analysisProgress() }}%</span>
+                    </div>
+                    <h3>{{ analysisStep() }}</h3>
+                    
+                    <div class="file-indicator">
+                      <span class="material-icons file-icon">insert_drive_file</span>
+                      <div class="file-text">
+                        <span class="name">{{ fileName() }}</span>
+                        <span class="size">{{ fileSize() }}</span>
+                      </div>
+                    </div>
+                  </div>
+                }
+                @case ('completed') {
+                  <div class="file-completed-card">
+                    <div class="success-banner">
+                      <div class="badge-success">
+                        <span class="material-icons success-check">check_circle</span>
+                      </div>
+                      <h3>CV Scanned Successfully</h3>
+                      <p>Check the right panel for parsing insights.</p>
+                    </div>
+                    
+                    <div class="file-indicator completed">
+                      <span class="material-icons file-icon">description</span>
+                      <div class="file-text">
+                        <span class="name">{{ fileName() }}</span>
+                        <span class="size">{{ fileSize() }}</span>
+                      </div>
+                    </div>
+
+                    <button class="btn-primary" (click)="resetAnalysis()">
+                      <span class="material-icons">refresh</span>
+                      <span>Analyze Another CV</span>
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </section>
+
+          <!-- Scan History Card -->
+          @if (historyItems().length > 0) {
+            <section class="history-card">
+              <div class="card-header">
+                <div class="header-title-row" style="display: flex; align-items: center; gap: 8px;">
+                  <span class="material-icons text-primary header-icon">history</span>
+                  <h2>Scan History</h2>
+                </div>
+                <p class="card-subtitle">Scans are saved for 7 days. Click to reload past insights.</p>
+              </div>
+              <div class="history-list">
+                @for (item of historyItems(); track item._id) {
+                  <div class="history-item" (click)="selectHistoryItem(item)">
+                    <div class="item-main">
+                      <div class="item-role-line">
+                        <span class="item-title">{{ item.predictedTitle }}</span>
+                        <span class="item-score" [class.high]="item.matchScore >= 80" [class.mid]="item.matchScore >= 60 && item.matchScore < 80" [class.low]="item.matchScore < 60">{{ item.matchScore }}%</span>
+                        @if (getFirstWord(item.jobDescription)) {
+                          <span class="item-jd-role-tag" style="font-size: 10px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 1px 7px; border-radius: 20px; text-transform: capitalize; border: 1px solid rgba(37, 99, 235, 0.1);" title="Role: {{ getFirstWord(item.jobDescription) }}">
+                            {{ getFirstWord(item.jobDescription) }}
+                          </span>
+                        }
+                      </div>
+                      <div class="item-meta-line">
+                        <span class="item-date">{{ item.createdAt | date:'MMM d, h:mm a' }}</span>
+                        @if (item.originalFile?.filename) {
+                          <span class="item-filename" title="{{ item.originalFile.filename }}">
+                            <span class="material-icons" style="font-size: 11px; margin-right: 2px;">insert_drive_file</span>
+                            {{ item.originalFile.filename }}
+                          </span>
+                        }
+                      </div>
+                    </div>
+                    <div class="item-actions">
+                      @if (item.originalFile?.filename) {
+                        <a [href]="getDownloadUrl(item._id)" class="action-btn download-btn" title="Download original uploaded CV" (click)="$event.stopPropagation()">
+                          <span class="material-icons">cloud_download</span>
+                        </a>
+                      }
+                      <button class="action-btn delete-btn" title="Delete scan from history" (click)="deleteHistoryItem(item._id, $event)">
+                        <span class="material-icons">delete_outline</span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+        </div>
+
+        <!-- Right Column: Analysis Insights -->
+        <section class="insights-card" [ngClass]="{ 'results-ready': uploadState() === 'completed' }">
+          @if (uploadState() !== 'completed') {
+            <div class="insights-placeholder">
+              <div class="placeholder-glow">
+                <span class="material-icons placeholder-icon">psychology</span>
+              </div>
+              <h2>ATS Insights Dashboard</h2>
+              <p>Upload your resume and paste the target job description to run the deep neural matcher. Get instant keyword fit, match scores, and optimization tips.</p>
+            </div>
+          } @else {
+            <div class="insights-body animate-fade-in">
+              
+              <!-- Evaluation Header -->
+              <div class="insights-header">
+                <div class="title-section">
+                  <span class="sparkle-badge">
+                    <span class="material-icons text-primary">auto_awesome</span>
+                    <span>AI Analysis Completed</span>
+                  </span>
+                  <h2>Evaluation Studio</h2>
+                  <p class="subtitle">Deep learning fit metrics and ATS recommendation dashboard.</p>
+                </div>
+              </div>
+
+
+              <!-- Radial Score Gauge -->
+              <div class="radial-gauge-container">
+                <div class="radial-gauge-wrapper">
+                  <svg class="radial-svg" viewBox="0 0 100 100">
+                    <defs>
+                      <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#3b82f6" />
+                        <stop offset="100%" stop-color="#1d4ed8" />
+                      </linearGradient>
+                      <linearGradient id="simulatedGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#10b981" />
+                        <stop offset="100%" stop-color="#059669" />
+                      </linearGradient>
+                      <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#3b82f6" flood-opacity="0.3" />
+                      </filter>
+                      <filter id="successGlow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#10b981" flood-opacity="0.3" />
+                      </filter>
+                    </defs>
+                    
+                    <!-- Background Circle track -->
+                    <circle class="gauge-track" cx="50" cy="50" r="40" stroke="#f1f5f9" stroke-width="8" fill="transparent" />
+                    
+                    <!-- Base Score ring -->
+                    <circle class="gauge-fill-base" cx="50" cy="50" r="40" 
+                            stroke="url(#scoreGradient)" stroke-width="8" fill="transparent"
+                            [style.stroke-dashoffset]="251.2 - (251.2 * matchScore() / 100)" stroke-dasharray="251.2"
+                            stroke-linecap="round" filter="url(#glow)" />
+                    
+                    <!-- Simulated Score ring (rendered if user made simulator progress) -->
+                    @if (simulatedScore() > matchScore()) {
+                      <circle class="gauge-fill-simulated" cx="50" cy="50" r="40" 
+                              stroke="url(#simulatedGradient)" stroke-width="8" fill="transparent"
+                              [style.stroke-dashoffset]="251.2 - (251.2 * simulatedScore() / 100)" stroke-dasharray="251.2"
+                              stroke-linecap="round" filter="url(#successGlow)" />
+                    }
+                  </svg>
+                  
+                  <div class="gauge-text">
+                    <span class="score-number" [ngClass]="{ 'has-simulation': simulatedScore() > matchScore() }">
+                      {{ simulatedScore() > matchScore() ? simulatedScore() : matchScore() }}%
+                    </span>
+                    <span class="score-label">Match Score</span>
+                  </div>
+                </div>
+
+                <div class="gauge-info">
+                  <div class="info-row">
+                    <span class="label">ATS Verdict</span>
+                    <span class="value verdict-badge" [ngClass]="{
+                      'good': simulatedScore() >= 85,
+                      'average': simulatedScore() >= 70 && simulatedScore() < 85,
+                      'poor': simulatedScore() < 70
+                    }">
+                      {{ simulatedScore() >= 85 ? 'Strong Match' : (simulatedScore() >= 70 ? 'Moderate Match' : 'Weak Match') }}
+                    </span>
+                  </div>
+                  <div class="info-row">
+                    <span class="label">Original Score</span>
+                    <span class="value font-semibold">{{ matchScore() }}%</span>
+                  </div>
+                  @if (simulatedScore() > matchScore()) {
+                    <div class="info-row simulation-gain animate-pulse">
+                      <span class="label text-success font-semibold">Simulation Gain</span>
+                      <span class="value text-success font-bold">+{{ simulatedScore() - matchScore() }}%</span>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Navigation Tabs -->
+              <div class="insights-tabs-bar">
+                <button class="tab-btn" [class.active]="activeTab() === 'fit'" (click)="selectTab('fit')">
+                  <span class="material-icons tab-icon">dashboard</span>
+                  <span>Fit Analysis</span>
+                </button>
+                <button class="tab-btn" [class.active]="activeTab() === 'skills'" (click)="selectTab('skills')">
+                  <span class="material-icons tab-icon">tune</span>
+                  <span>Skills Matrix</span>
+                  @if (missingSkills().length > 0) {
+                    <span class="tab-badge warning-bg">{{ missingSkills().length }}</span>
+                  }
+                </button>
+                <button class="tab-btn" [class.active]="activeTab() === 'optimizer'" (click)="selectTab('optimizer')">
+                  <span class="material-icons tab-icon">auto_fix_high</span>
+                  <span>ATS Optimizer</span>
+                  @if (suggestions().length - addressedSuggestions().length > 0) {
+                    <span class="tab-badge info-bg">{{ suggestions().length - addressedSuggestions().length }}</span>
+                  }
+                </button>
+              </div>
+
+              <!-- Tab Contents -->
+              <div class="tab-view-container">
+                
+                <!-- Tab 'fit': Overall Fit Summary -->
+                @if (activeTab() === 'fit') {
+                  <div class="tab-pane animate-fade-in">
+                    <div class="fit-summary-card">
+                      <div class="card-quote">
+                        <span class="material-icons quote-icon">analytics</span>
+                        <p>
+                          Our neural classifier evaluated your experience and keywords against the target description. Your resume shows a 
+                          <strong>{{ matchScore() >= 85 ? 'strong capability alignment' : (matchScore() >= 70 ? 'moderate capability alignment' : 'weak capability alignment') }}</strong> 
+                          for the target role.
+                        </p>
+                      </div>
+                      
+                      <div class="fit-stats-grid">
+                        <div class="stat-card">
+                          <span class="num text-primary">{{ skills().length }}</span>
+                          <span class="lbl">Extracted Skills</span>
+                        </div>
+                        <div class="stat-card">
+                          <span class="num" [class.text-warning]="missingSkills().length > 0">{{ missingSkills().length }}</span>
+                          <span class="lbl">Skill Gaps</span>
+                        </div>
+                        <div class="stat-card">
+                          <span class="num text-success">
+                            {{ matchScore() >= 85 ? 'High' : (matchScore() >= 70 ? 'Medium' : 'Low') }}
+                          </span>
+                          <span class="lbl">ATS Compliance</span>
+                        </div>
+                      </div>
+
+                      <div class="fit-guidance">
+                        <h4>Strategic Next Steps:</h4>
+                        <ul>
+                          <li>Switch to the <strong>Skills Matrix</strong> tab to view critical tool discrepancies.</li>
+                          <li>Open the <strong>ATS Optimizer</strong> tab to fix ATS issues in the sandbox and dynamically boost your match score.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                }
+
+                <!-- Tab 'skills': Skills Matrix (Matched vs Missing vs Additional) -->
+                @if (activeTab() === 'skills') {
+                  <div class="tab-pane animate-fade-in">
+                    <div class="skills-matrix-view">
+                      
+                      <!-- Matched Skills Section -->
+                      <div class="matrix-section matches-group">
+                        <div class="section-heading">
+                          <span class="material-icons icon-success">check_circle</span>
+                          <h4>Core Matches ({{ matchedSkills().length }})</h4>
+                        </div>
+                        <p class="section-desc">Skills found in both target Job Description and your Resume.</p>
+                        @if (matchedSkills().length === 0) {
+                          <span class="no-skills-msg">No direct matches identified. Try adding JD skills.</span>
+                        } @else {
+                          <div class="skills-flex-grid">
+                            @for (skill of matchedSkills(); track $index) {
+                              <span class="matrix-tag tag-success">
+                                <span class="tag-dot"></span>
+                                {{ skill }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Missing Skills Section -->
+                      <div class="matrix-section gaps-group">
+                        <div class="section-heading">
+                          <span class="material-icons icon-warning">report_problem</span>
+                          <h4>JD Missing Requirements ({{ missingSkills().length }})</h4>
+                        </div>
+                        <p class="section-desc">Required keywords found in target JD but missing on your Resume.</p>
+                        @if (missingSkills().length === 0) {
+                          <span class="no-skills-msg success-text">All target JD keywords addressed! Excellent.</span>
+                        } @else {
+                          <div class="skills-flex-grid">
+                            @for (skill of missingSkills(); track $index) {
+                              <span class="matrix-tag tag-warning">
+                                <span class="material-icons tag-icon">add</span>
+                                {{ skill }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                      <!-- Additional Skills Section -->
+                      <div class="matrix-section other-group">
+                        <div class="section-heading">
+                          <span class="material-icons icon-info">lightbulb</span>
+                          <h4>Additional CV Highlights ({{ otherSkills().length }})</h4>
+                        </div>
+                        <p class="section-desc">Extra skills extracted from your resume that add lateral value.</p>
+                        @if (otherSkills().length === 0) {
+                          <span class="no-skills-msg">No other technical keywords parsed.</span>
+                        } @else {
+                          <div class="skills-flex-grid">
+                            @for (skill of otherSkills(); track $index) {
+                              <span class="matrix-tag tag-info">
+                                <span class="tag-dot"></span>
+                                {{ skill }}
+                              </span>
+                            }
+                          </div>
+                        }
+                      </div>
+
+                    </div>
+                  </div>
+                }
+
+                <!-- Tab 'optimizer': ATS Recommendation Interactive Checklist -->
+                @if (activeTab() === 'optimizer') {
+                  <div class="tab-pane animate-fade-in">
+                    <div class="optimizer-view">
+                      
+                      <!-- Optimization Progress Bar -->
+                      <div class="optimizer-summary">
+                        <div class="opt-desc">
+                          <span class="material-icons header-icon text-primary">auto_fix_high</span>
+                          <div>
+                            <h5>Interactive Simulator</h5>
+                            <p>Address warning items below to dynamically increment your match score.</p>
+                          </div>
+                        </div>
+                        <div class="opt-stats" style="display: flex; gap: 8px; align-items: center;">
+                          <span class="ratio" style="margin-right: 8px;">{{ addressedSuggestions().length }} / {{ suggestions().length }} fixed</span>
+                          
+                          <button class="btn-auto-fix" (click)="autoFixAllSuggestions()" style="background: linear-gradient(135deg, #10b981, #059669); color: white; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" title="Auto-fix all checklist recommendations and load WYSIWYG editor">
+                            <span class="material-icons" style="font-size: 14px;">auto_awesome</span>
+                            <span>Fix All & Edit</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Checklist cards -->
+                      <div class="optimizer-cards-list">
+                        @for (item of suggestions(); track item.id) {
+                          <div class="optimizer-card" 
+                               [class.active-expanded]="selectedSuggestion()?.id === item.id"
+                               [class.is-addressed]="addressedSuggestions().includes(item.id)"
+                               [ngClass]="item.type"
+                               (click)="selectSuggestion(item)">
+                            
+                            <div class="card-summary-row">
+                              <div class="checkbox-container" (click)="toggleAddressSuggestion(item.id); $event.stopPropagation()">
+                                <button class="custom-checkbox" [class.checked]="addressedSuggestions().includes(item.id)">
+                                  @if (addressedSuggestions().includes(item.id)) {
+                                    <span class="material-icons check-mark">check</span>
+                                  }
+                                </button>
+                              </div>
+
+                              <div class="card-title-text">
+                                <span class="item-main-text">{{ item.text }}</span>
+                              </div>
+
+                              <span class="material-icons chevron-indicator">
+                                {{ selectedSuggestion()?.id === item.id ? 'expand_less' : 'expand_more' }}
+                              </span>
+                            </div>
+
+                            <!-- Drawer Panel for Simulation Sandbox -->
+                            @if (selectedSuggestion()?.id === item.id) {
+                              <div class="optimizer-drawer animate-slide-down" (click)="$event.stopPropagation()">
+                                <hr class="drawer-divider" />
+                                
+                                <div class="drawer-instruction">
+                                  <div class="instruction-title">
+                                    <span class="material-icons text-primary icon-sm">info</span>
+                                    <span>{{ item.actionTitle || 'How to optimize' }}</span>
+                                  </div>
+                                  <p class="instruction-body">{{ item.actionDetails || 'Incorporate specific metrics and details to clear ATS checks.' }}</p>
+                                  
+                                  @if (item.keyword) {
+                                    <div class="keyword-requirement">
+                                      <span class="req-label">Validation Keyword:</span>
+                                      <span class="req-value">"{{ item.keyword }}"</span>
+                                    </div>
+                                  }
+                                </div>
+
+                                @if (!addressedSuggestions().includes(item.id)) {
+                                  <div class="sandbox-container">
+                                    <label class="sandbox-label">Write your updated CV bullet point or listing here:</label>
+                                    <textarea 
+                                      class="form-control sandbox-textarea" 
+                                      rows="3" 
+                                      [(ngModel)]="simulationText" 
+                                      placeholder="e.g. Led redesign using {{ item.keyword || 'React' }} which reduced latency by 30%..."
+                                    ></textarea>
+                                    <div class="sandbox-actions">
+                                      <button class="btn-sandbox-run" (click)="simulateFix(item.id, simulationText())">
+                                        <span class="material-icons">play_circle</span>
+                                        <span>Test Calibration</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                } @else {
+                                  <div class="sandbox-completed-banner animate-bounce-in">
+                                    <span class="material-icons banner-icon">verified</span>
+                                    <div class="banner-text">
+                                      <h6>ATS check solved!</h6>
+                                      <p>This item has been calibrated and incorporated. Simulated match score updated.</p>
+                                    </div>
+                                    <button class="btn-undo-fix" (click)="toggleAddressSuggestion(item.id)">
+                                      Undo Fix
+                                    </button>
+                                  </div>
+                                }
+                              </div>
+                            }
+
+                          </div>
+                        }
+                      </div>
+
+                    </div>
+                  </div>
+                }
+
+              </div>
+
+            </div>
+          }
+        </section>
+
+        </div>
+      } @else if (activeSidebarTab() === 'history') {
+        <!-- Scan History Explorer Page -->
+        <div class="history-grid-layout" style="display: grid; grid-template-columns: 350px 1fr; gap: 32px; align-items: start; width: 100%; animation: fadeIn 0.4s ease;">
+          
+          <!-- History Explorer list card -->
+          <div class="history-sidebar-list-card" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border-radius: 24px; border: 1px solid rgba(226, 232, 240, 0.8); padding: 24px; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04); display: flex; flex-direction: column; gap: 16px;">
+            <div class="card-header" style="border-bottom: 1px solid rgba(226, 232, 240, 0.6); padding-bottom: 12px; margin-bottom: 4px;">
+              <h2 style="font-size: 18px; margin: 0;">Scan Explorer</h2>
+              <p class="card-subtitle" style="font-size: 11px; margin: 2px 0 0 0;">Select a past scan to view details.</p>
+            </div>
+            
+            <div class="history-items-scroll-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 4px;">
+              @for (item of historyItems(); track item._id) {
+                <div class="history-item" [class.active-item]="selectedHistoryItem()?._id === item._id" (click)="selectedHistoryItem.set(item)" style="background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 14px; padding: 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 6px;" [style.border-color]="selectedHistoryItem()?._id === item._id ? 'var(--primary)' : 'rgba(226, 232, 240, 0.8)'" [style.background]="selectedHistoryItem()?._id === item._id ? 'rgba(37, 99, 235, 0.02)' : '#ffffff'">
+                  <div class="item-role-line" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <span class="item-title" style="font-weight: 600; font-size: 13px; color: var(--text-main); white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 220px;">{{ item.predictedTitle }}</span>
+                    <span class="item-score" [class.high]="item.matchScore >= 80" [class.mid]="item.matchScore >= 60 && item.matchScore < 80" [class.low]="item.matchScore < 60" style="font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;">{{ item.matchScore }}%</span>
+                  </div>
+                  <div class="item-meta-line" style="display: flex; justify-content: space-between; align-items: center; font-size: 10.5px; color: var(--text-muted);">
+                    <span>{{ item.createdAt | date:'MMM d, h:mm a' }}</span>
+                    @if (getFirstWord(item.jobDescription)) {
+                      <span class="tag" style="background: var(--primary-light); color: var(--primary); padding: 1px 6px; border-radius: 4px; font-weight: 600; font-size: 9px; text-transform: uppercase;">{{ getFirstWord(item.jobDescription) }}</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+          
+          <!-- Detailed Report Area -->
+          <div class="history-details-area">
+            @if (selectedHistoryItem()) {
+              <div class="detailed-report-card" style="background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); border-radius: 24px; border: 1px solid rgba(226, 232, 240, 0.8); padding: 32px; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04); display: flex; flex-direction: column; gap: 24px;">
+                
+                <!-- Report Header -->
+                <div class="report-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid rgba(226, 232, 240, 0.6); padding-bottom: 20px;">
+                  <div>
+                    <span class="sparkle-badge" style="margin-bottom: 8px;">
+                      <span class="material-icons" style="font-size: 14px; margin-right: 4px; color: var(--primary);">assessment</span>
+                      <span>Scan Report Insights</span>
+                    </span>
+                    <h2 style="margin: 0; font-size: 22px; color: var(--text-main);">{{ selectedHistoryItem()?.predictedTitle }}</h2>
+                    <p style="margin: 4px 0 0 0; font-size: 12px; color: var(--text-muted);">
+                      Seniority Level: <strong>{{ selectedHistoryItem()?.predictedExperienceLevel }}</strong> &bull; Scanned on {{ selectedHistoryItem()?.createdAt | date:'MMMM d, y, h:mm a' }}
+                    </p>
+                  </div>
+                  
+                  <div class="report-actions" style="display: flex; gap: 10px;">
+                    @if (selectedHistoryItem()?.originalFile?.filename) {
+                      <a [href]="getDownloadUrl(selectedHistoryItem()?._id)" class="btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; text-decoration: none; border-radius: 8px; color: white;" (click)="$event.stopPropagation()">
+                        <span class="material-icons" style="font-size: 16px;">cloud_download</span>
+                        <span>Download CV</span>
+                      </a>
+                    }
+                    <button class="btn-danger" (click)="deleteHistoryItem(selectedHistoryItem()?._id, $event); selectedHistoryItem.set(null)" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; font-size: 12px; background: rgba(239, 68, 68, 0.08); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                      <span class="material-icons" style="font-size: 16px;">delete</span>
+                      <span>Delete Scan</span>
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Match Score & Highlights -->
+                <div class="report-metrics-grid" style="display: grid; grid-template-columns: 180px 1fr; gap: 32px; align-items: start;">
+                  <div class="score-circle-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; background: #ffffff; border: 1px solid rgba(226,232,240,0.8); border-radius: 20px; padding: 24px; text-align: center;">
+                    <div style="font-size: 40px; font-weight: 800; color: var(--primary);">{{ selectedHistoryItem()?.matchScore }}%</div>
+                    <div style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-top: 4px; letter-spacing: 0.5px;">ATS Match Fit</div>
+                  </div>
+                  
+                  <div class="meta-texts" style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="text-block">
+                      <h4 style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Extracted Skills Overlap</h4>
+                      <div class="skills-tags-list" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+                        @for (skill of selectedHistoryItem()?.matchedSkills; track skill) {
+                          <span style="background: rgba(16, 185, 129, 0.08); color: #059669; font-size: 11px; padding: 3px 10px; border-radius: 30px; font-weight: 600;">{{ skill }}</span>
+                        }
+                        @for (skill of selectedHistoryItem()?.missingSkills; track skill) {
+                          <span style="background: rgba(239, 68, 68, 0.08); color: #dc2626; font-size: 11px; padding: 3px 10px; border-radius: 30px; font-weight: 600;">{{ skill }} (Missing)</span>
+                        }
+                        @if (selectedHistoryItem()?.matchedSkills?.length === 0 && selectedHistoryItem()?.missingSkills?.length === 0) {
+                          <span style="color: var(--text-muted); font-size: 12px; font-style: italic;">No specific skills indexed.</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Necessary Changes Checklist -->
+                <div class="report-suggestions-section" style="border-top: 1px solid rgba(226, 232, 240, 0.6); padding-top: 24px;">
+                  <h3 style="font-size: 15px; margin: 0 0 16px 0; display: flex; align-items: center; gap: 8px; color: var(--text-main);">
+                    <span class="material-icons text-warning" style="font-size: 20px;">assignment_late</span>
+                    <span>Necessary Changes to Make (Checklist)</span>
+                  </h3>
+                  
+                  <div class="suggestions-list" style="display: flex; flex-direction: column; gap: 12px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                    @for (suggestion of selectedHistoryItem()?.suggestions; track suggestion.id) {
+                      <div class="suggestion-item" style="border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 12px; padding: 14px; background: #ffffff; display: flex; gap: 12px; align-items: flex-start;">
+                        <span class="material-icons" [class.text-warning]="suggestion.type === 'warning'" [class.text-success]="suggestion.type === 'success'" [class.text-primary]="suggestion.type === 'info'" style="font-size: 18px; margin-top: 2px;">
+                          {{ suggestion.type === 'success' ? 'check_circle' : (suggestion.type === 'warning' ? 'error' : 'info') }}
+                        </span>
+                        <div>
+                          <div style="font-size: 13px; font-weight: 600; color: var(--text-main);">{{ suggestion.actionTitle || 'Recommendation' }}</div>
+                          <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;">{{ suggestion.text }}</div>
+                          @if (suggestion.actionDetails) {
+                            <div style="font-size: 11px; background: #f8fafc; border-radius: 6px; padding: 8px 12px; margin-top: 8px; color: #475569; border-left: 3px solid var(--primary); line-height: 1.4;">
+                              {{ suggestion.actionDetails }}
+                            </div>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+                
+                <!-- Job Description Snippet -->
+                @if (selectedHistoryItem()?.jobDescription) {
+                  <div style="border-top: 1px solid rgba(226, 232, 240, 0.6); padding-top: 20px;">
+                    <h4 style="margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px;">Target Job Description</h4>
+                    <pre style="background: #f8fafc; border: 1px solid rgba(226, 232, 240, 0.6); border-radius: 12px; padding: 16px; font-size: 11.5px; color: #475569; white-space: pre-wrap; font-family: inherit; margin: 0; line-height: 1.6; max-height: 150px; overflow-y: auto;">{{ selectedHistoryItem()?.jobDescription }}</pre>
+                  </div>
+                }
+                
+              </div>
+            } @else {
+              <div class="detailed-report-placeholder" style="background: rgba(255, 255, 255, 0.5); backdrop-filter: blur(8px); border-radius: 24px; border: 2px dashed rgba(226, 232, 240, 1); height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center;">
+                <span class="material-icons" style="font-size: 48px; margin-bottom: 12px; color: #cbd5e1;">preview</span>
+                <h3 style="margin: 0; font-size: 16px; color: var(--text-main);">Select a Scan Report</h3>
+                <p style="font-size: 12px; margin: 4px 0 0 0;">Choose an entry from the explorer to preview full detailed fit parameters.</p>
+              </div>
+            }
+          </div>
+          
+        </div>
+      }
+      
+      <!-- Interactive WYSIWYG Resume Sandbox Editor -->
+      <app-interactive-cv *ngIf="cvData" [cvData]="cvData"></app-interactive-cv>
+    </main>
+  </div>
+</div>
+
+<!-- Glassmorphic Profile Update Dialog Modal -->
+@if (isProfileModalOpen()) {
+  <div class="modal-overlay" (click)="closeProfileModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="title-with-icon">
+          <span class="material-icons">account_circle</span>
+          <h3>Update Profile</h3>
+        </div>
+        <button class="btn-close" (click)="closeProfileModal()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <!-- Profile Picture Section -->
+        <div class="profile-pic-upload-section">
+          <div class="avatar-preview-container">
+            @if (editProfilePic()) {
+              <img [src]="editProfilePic()" class="avatar-preview" alt="Preview" />
+              <button class="btn-remove-photo" (click)="removeProfilePic()" title="Remove photo" type="button">
+                <span class="material-icons">delete</span>
+              </button>
+            } @else {
+              <div class="avatar-preview-placeholder">
+                {{ getUserInitials() }}
+              </div>
+            }
+            <div class="upload-badge" (click)="filePicInput.click()" title="Upload Photo">
+              <span class="material-icons">photo_camera</span>
+            </div>
+          </div>
+          <input 
+            #filePicInput
+            type="file" 
+            accept="image/*" 
+            (change)="onProfilePicSelected($event)" 
+            style="display: none" 
+          />
+          <span class="upload-hint">Upload photo (PNG, JPG up to 2MB)</span>
+        </div>
+
+        <!-- Form fields -->
+        <div class="profile-form-fields">
+          <div class="form-group">
+            <label for="profileName">Full Name <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="profileName" 
+              [(ngModel)]="editName" 
+              placeholder="Enter your full name" 
+              class="form-control"
+              required 
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="profileRole">Job Title / Role</label>
+            <input 
+              type="text" 
+              id="profileRole" 
+              [(ngModel)]="editRole" 
+              placeholder="e.g. Frontend Engineer" 
+              class="form-control" 
+            />
+          </div>
+
+          <div class="form-group-row">
+            <div class="form-group">
+              <label for="profileCompany">Company</label>
+              <input 
+                type="text" 
+                id="profileCompany" 
+                [(ngModel)]="editCompany" 
+                placeholder="e.g. Google" 
+                class="form-control" 
+              />
+            </div>
+            
+            <div class="form-group">
+              <label for="profileCollege">College</label>
+              <input 
+                type="text" 
+                id="profileCollege" 
+                [(ngModel)]="editCollege" 
+                placeholder="e.g. Stanford University" 
+                class="form-control" 
+              />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="profileBio">Bio</label>
+            <textarea 
+              id="profileBio" 
+              [(ngModel)]="editBio" 
+              placeholder="Tell us about yourself..." 
+              class="form-control text-area"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeProfileModal()" [disabled]="isUpdatingProfile()">
+          Cancel
+        </button>
+        <button class="btn-save" (click)="saveProfile()" [disabled]="isUpdatingProfile()">
+          @if (isUpdatingProfile()) {
+            <span class="spinner-small"></span>
+            <span>Saving...</span>
+          } @else {
+            <span class="material-icons">save</span>
+            <span>Save Changes</span>
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}
