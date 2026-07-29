@@ -12,6 +12,10 @@
           <span class="material-icons">dashboard</span>
           <span>Workspace</span>
         </a>
+        <a class="menu-item" routerLink="/latex-editor">
+          <span class="material-icons">code</span>
+          <span>LaTeX CV Studio</span>
+        </a>
         <a class="menu-item" [class.active]="activeSidebarTab() === 'history'" (click)="activeSidebarTab.set('history'); selectedHistoryItem.set(historyItems()[0] || null)">
           <span class="material-icons">history</span>
           <span>History</span>

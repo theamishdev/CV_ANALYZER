@@ -59,12 +59,14 @@ interface ParsedCv {
   achievements?: string[];
 }
 
+import { RouterLink } from '@angular/router';
+
 declare const html2pdf: any;
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, InteractiveCvComponent],
+  imports: [CommonModule, FormsModule, RouterLink, InteractiveCvComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
@@ -1096,31 +1098,34 @@ export class HomeComponent {
     if (contact.github) contactInfoHtml += `<span style="margin-right: 18px; display: inline-flex; align-items: center; gap: 4px;"><span style="font-family: Arial, sans-serif; font-size: 12px; color: #3b82f6;">&#60;&#47;&#62;</span> GitHub: ${contact.github}</span>`;
     if (contact.linkedin) contactInfoHtml += `<span style="display: inline-flex; align-items: center; gap: 4px;"><span style="font-family: Arial, sans-serif; font-size: 12px; color: #3b82f6;">&#128188;</span> LinkedIn: ${contact.linkedin}</span>`;
 
-    // 7. Assemble the final premium two-column template layout
+    // 7. Assemble the final template layout and attach to body for html2canvas rendering
     const templateElement = document.createElement('div');
+    templateElement.style.position = 'absolute';
+    templateElement.style.left = '-9999px';
+    templateElement.style.top = '0';
+    templateElement.style.width = '800px';
     templateElement.innerHTML = `
-      <div style="padding: 40px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #334155; background: #ffffff; max-width: 820px; box-sizing: border-box;">
+      <div style="padding: 40px; font-family: 'Inter', Helvetica, Arial, sans-serif; color: #334155; background: #ffffff; max-width: 800px; box-sizing: border-box;">
         
         <!-- Header Section -->
-        <div style="border-bottom: 3.5px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 20px;">
-          <h1 style="margin: 0; font-size: 28px; color: #1e3a8a; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1;">${candidateName}</h1>
-          <p style="margin: 5px 0 10px 0; font-size: 14px; color: #2563eb; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">${this.predictedTitle() || 'Technical Specialist'}</p>
+        <div style="border-bottom: 3.5px solid #003366; padding-bottom: 14px; margin-bottom: 20px;">
+          <h1 style="margin: 0; font-size: 28px; color: #003366; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1;">${candidateName}</h1>
+          <p style="margin: 5px 0 10px 0; font-size: 14px; color: #0066cc; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px;">${this.predictedTitle() || 'Full-Stack Developer'}</p>
           
-          <!-- Contact Details Grid -->
-          <div style="display: flex; flex-wrap: wrap; font-size: 10.5px; color: #475569; line-height: 1.6; padding-top: 6px;">
+          <div style="font-size: 11.5px; color: #64748b; line-height: 1.6;">
             ${contactInfoHtml}
           </div>
         </div>
 
-        <!-- Split Layout (Left Column narrow 30%, Right Column wide 70%) -->
-        <div style="display: flex; gap: 30px;">
+        <!-- Body Layout (Two Columns) -->
+        <div style="display: flex; gap: 24px; align-items: flex-start;">
           
           <!-- LEFT COLUMN (Sidebar) -->
           <div style="width: 32%; flex-shrink: 0; border-right: 1.5px solid #e2e8f0; padding-right: 18px;">
             
             <!-- Skills Matrix Section -->
             <div style="margin-bottom: 24px;">
-              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #1e3a8a; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Core Skills</h3>
+              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #003366; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Core Skills</h3>
               <div style="line-height: 1.9;">
                 ${skillsTagsHtml}
               </div>
@@ -1128,7 +1133,7 @@ export class HomeComponent {
 
             <!-- Education Section -->
             <div style="margin-bottom: 24px;">
-              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #1e3a8a; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Education</h3>
+              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #003366; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Education</h3>
               <div>
                 ${educationListHtml}
               </div>
@@ -1136,7 +1141,7 @@ export class HomeComponent {
 
             <!-- Meta details (ATS Summary Badge) -->
             <div style="margin-top: 30px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; font-size: 10px; color: #64748b; line-height: 1.45;">
-              <strong style="color: #1e3a8a; display: block; margin-bottom: 4px;">ATS Optimization Metrics</strong>
+              <strong style="color: #003366; display: block; margin-bottom: 4px;">ATS Optimization Metrics</strong>
               Verdict: <strong>${this.simulatedScore() >= 85 ? 'Strong Match' : (this.simulatedScore() >= 70 ? 'Moderate Match' : 'Weak Match')}</strong><br/>
               Target Score: <strong>${this.simulatedScore()}%</strong><br/>
               Seniority Fit: <strong>${this.predictedExperienceLevel()}</strong>
@@ -1149,7 +1154,7 @@ export class HomeComponent {
             
             <!-- Professional Summary -->
             <div style="margin-bottom: 22px;">
-              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #1e3a8a; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Professional Summary</h3>
+              <h3 style="margin: 0 0 10px 0; font-size: 12.5px; text-transform: uppercase; color: #003366; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Professional Summary</h3>
               <p style="margin: 0; font-size: 12px; color: #475569; line-height: 1.6; font-style: normal;">
                 ${cv.summary}
               </p>
@@ -1160,7 +1165,7 @@ export class HomeComponent {
 
             <!-- Work Experience -->
             <div style="margin-bottom: 22px;">
-              <h3 style="margin: 0 0 12px 0; font-size: 12.5px; text-transform: uppercase; color: #1e3a8a; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Professional Experience</h3>
+              <h3 style="margin: 0 0 12px 0; font-size: 12.5px; text-transform: uppercase; color: #003366; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Professional Experience</h3>
               <div>
                 ${experienceListHtml}
               </div>
@@ -1169,7 +1174,7 @@ export class HomeComponent {
             <!-- Projects -->
             ${cv.projects && cv.projects.length > 0 ? `
               <div>
-                <h3 style="margin: 0 0 12px 0; font-size: 12.5px; text-transform: uppercase; color: #1e3a8a; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Key Projects</h3>
+                <h3 style="margin: 0 0 12px 0; font-size: 12.5px; text-transform: uppercase; color: #003366; letter-spacing: 1.2px; border-bottom: 1.8px solid #cbd5e1; padding-bottom: 6px; font-weight: 700;">Key Projects</h3>
                 <div>
                   ${projectsListHtml}
                 </div>
@@ -1182,6 +1187,8 @@ export class HomeComponent {
 
       </div>
     `;
+
+    document.body.appendChild(templateElement);
 
     // 8. PDF Export configuration options
     const opt = {
@@ -1203,8 +1210,16 @@ export class HomeComponent {
         .catch((err: any) => {
           console.error('PDF export failed:', err);
           this.toastService.error('Failed to export structured PDF CV.', 4000);
+        })
+        .finally(() => {
+          if (document.body.contains(templateElement)) {
+            document.body.removeChild(templateElement);
+          }
         });
     } else {
+      if (document.body.contains(templateElement)) {
+        document.body.removeChild(templateElement);
+      }
       this.toastService.error('PDF exporter library is not loaded.', 4000);
     }
   }
@@ -1243,77 +1258,117 @@ export class HomeComponent {
 
     const parsedSkills = [
       {
-        category: 'Programming Languages',
-        items: ['TypeScript', 'JavaScript', 'Python']
+        category: 'Languages',
+        items: ['C', 'C++', 'JavaScript', 'Java', 'Python', 'PHP']
       },
       {
-        category: 'Libraries & Frameworks',
-        items: ['React.js', 'Node.js', 'Angular']
+        category: 'Frameworks',
+        items: ['HTML', 'CSS', 'NodeJS', 'React', 'Express', 'TypeScript']
       },
       {
-        category: 'Other Tools',
-        items: ['Git', 'Agile', 'SASS / SCSS']
+        category: 'Tools & Platforms',
+        items: ['MySQL', 'PostgreSQL', 'MongoDB', 'VS Code', 'Git', 'GitHub', 'Firebase']
+      },
+      {
+        category: 'Soft Skills',
+        items: ['Problem-Solving', 'Team Player', 'Adaptability']
       }
     ];
     
     return {
-      name: candidateName,
+      name: candidateName || 'Amish Verma',
       contact: {
-        email: email || 'contact@cv-analyzer.com',
-        phone: phone || '+1 (555) 019-2834',
-        location: 'San Francisco, CA',
-        linkedin: linkedin || 'linkedin.com/in/candidate',
-        github: github || 'github.com/candidate',
-        portfolio: portfolio || 'candidate-portfolio.dev'
+        email: email || 'amishv20@gmail.com',
+        phone: phone || '+91-9608513718',
+        location: 'Punjab, India',
+        linkedin: linkedin || 'https://www.linkedin.com/in/amish12/',
+        github: github || 'https://github.com/theamishdev',
+        portfolio: portfolio || 'https://github.com/theamishdev'
       },
-      summary: `Motivated and results-driven specialist. Experienced in structuring complex workflows, debugging code, and driving architectural alignments. Validated target score clearances mapped in local ATS scans.`,
+      summary: `Full-Stack Developer and Computer Science undergraduate with hands-on experience developing scalable web platforms, RESTful APIs, in-browser code compilers, and interactive algorithms.`,
       skills: parsedSkills,
       experience: [
         {
-          role: this.predictedTitle() || 'Software Engineer',
-          company: 'Tech Solutions Corp',
-          location: 'San Francisco, CA',
-          duration: 'June 2022 - Present',
+          role: 'Mentor (Frontend - HTML, CSS, JavaScript)',
+          company: 'DNK Media - Learning Platform',
+          location: 'Remote / Hybrid',
+          duration: "May'25 -- Present",
           highlights: [
-            'Spearheaded development of scalable web architecture, cutting API response times by 30%.',
-            'Implemented clean code conventions and mentored junior engineering teams.',
-            'Collaborated with stakeholders to deploy automated testing frameworks reducing regressions.'
-          ]
-        },
-        {
-          role: 'Associate Developer',
-          company: 'Innovative Systems Ltd',
-          location: 'Oakland, CA',
-          duration: 'Jan 2020 - May 2022',
-          highlights: [
-            'Contributed to code refactoring and performance tuning of responsive layouts.',
-            'Analyzed relational databases to optimize query execution and indices.'
+            'Providing instruction as a frontend mentor for Diploma students, guiding them through the fundamentals of modern web development.',
+            'Developing and presented structured lessons and practical exercises focused on core web design and implementation principles.',
+            'Giving one-on-one mentorship and technical support, troubleshooting code issues and guiding students through project development.'
           ]
         }
       ],
       education: [
         {
-          degree: 'Bachelor of Science in Computer Science',
-          school: 'State University',
-          location: 'California',
-          duration: '2016 - 2020',
-          gpa: '3.7/4.0'
+          degree: 'Bachelor of Technology - Computer Science and Engineering',
+          school: 'Lovely Professional University',
+          location: 'Punjab, India',
+          duration: "Aug'23 -- Present",
+          gpa: 'CGPA: 7.99'
+        },
+        {
+          degree: 'Intermediate',
+          school: 'Dav Public School',
+          location: 'Gandhi Nagar, Ranchi',
+          duration: "Apr'22 -- Mar'23",
+          gpa: 'Percentage: 85.2%'
+        },
+        {
+          degree: 'Matriculation',
+          school: 'Dav Public School',
+          location: 'Gandhi Nagar, Ranchi',
+          duration: "Apr'20 -- Mar'21",
+          gpa: 'Percentage: 95%'
         }
       ],
       projects: [
         {
-          name: 'Distributed Cloud Analytics Platform',
-          description: 'A cloud-native data visualization pipeline processing real-time system metrics.',
-          technologies: ['React.js', 'Node.js', 'Docker', 'AWS'],
-          link: 'github.com/candidate/distributed-analytics'
+          name: 'DNK Skills (Learning Management system)',
+          description: 'Developing a scalable learning platform for DNK Media as a full-time intern, implementing Firebase auth, Judge0 in-browser compiler, LeetCode question datasets, and RESTful APIs.',
+          technologies: ['TypeScript', 'PSQL', 'Node.js', 'REST APIs', 'Firebase'],
+          link: 'https://github.com/theamishdev'
+        },
+        {
+          name: 'Farm Hive (Agriculture Support Website)',
+          description: 'Developed an e-commerce website where farmers can sell or buy agricultural products with secure Firebase authentication, reCAPTCHA protection, and product listing APIs.',
+          technologies: ['React.js', 'Node.js', 'Express', 'MongoDB', 'Firebase'],
+          link: 'https://github.com/theamishdev'
+        },
+        {
+          name: 'Connect Share',
+          description: 'Platform for entrepreneurs to connect and collaborate, featuring Google Meet integration for real-time meetings and an AI-based chatbot assistant.',
+          technologies: ['HTML', 'CSS', 'JavaScript', 'PHP'],
+          link: 'https://github.com/theamishdev'
+        },
+        {
+          name: 'Deadlock Detection System',
+          description: 'Interactive web-based system detecting and preventing deadlocks in real-time using cycle detection (DFS) and safety algorithms with 90% detection rates in simulated test cases.',
+          technologies: ['HTML', 'CSS', 'JavaScript'],
+          link: 'https://github.com/theamishdev'
         }
       ],
       certifications: [
         {
-          name: 'AWS Certified Cloud Practitioner',
-          issuer: 'Amazon Web Services',
-          date: '2025'
+          name: 'Software Engineering Job Simulation',
+          issuer: 'JPMorgan Chase & Co.',
+          date: "Nov'25"
+        },
+        {
+          name: 'Data Structures and Algorithm using Java',
+          issuer: 'Cipher Schools',
+          date: "July'25"
+        },
+        {
+          name: 'Responsive Web Design',
+          issuer: 'FreeCodeCamp',
+          date: "Oct'23"
         }
+      ],
+      achievements: [
+        'Attained 4 stars in SQL and C on HackerRank.',
+        "Achieved ranking among top 5 performers in Love Babbar's DSA Supreme Batch (Jan'26)."
       ]
     };
   }

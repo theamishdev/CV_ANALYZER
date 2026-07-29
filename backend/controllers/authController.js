@@ -7,6 +7,7 @@ const Cv = require('../models/cvModel');
 const parserService = require('../services/parserService');
 const generatorService = require('../services/generatorService');
 const pdfGeneratorService = require('../services/pdfGeneratorService');
+const latexService = require('../services/latexService');
 const { validateSignup, validateLogin } = require('../utils/validation');
 
 /**
@@ -763,26 +764,34 @@ async function downloadDocxCv(req, res) {
 
 async function generateCvPdf(req, res) {
   try {
-    const cvData = req.body;
-    if (!cvData || !cvData.contact || !cvData.contact.fullName) {
+    let cvData = req.body;
+    if (!cvData) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid CV data payload'
+        message: 'Invalid CV data payload: body is empty.'
       });
+    }
+
+    // Normalize contact and fullName fields safely
+    if (!cvData.contact) cvData.contact = {};
+    if (!cvData.contact.fullName) {
+      cvData.contact.fullName = cvData.name || 'Candidate';
     }
 
     // Call Puppeteer template compiler
     const pdfBuffer = await pdfGeneratorService.generatePdfFromTemplate(cvData);
 
+    const safeFilename = cvData.contact.fullName.replace(/[^a-zA-Z0-9_-]/g, '_') + '_CV.pdf';
+
     // Send PDF file buffer to client
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${cvData.contact.fullName.replace(/\s+/g, '_')}_CV.pdf`);
-    res.send(pdfBuffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${safeFilename}"`);
+    return res.send(pdfBuffer);
   } catch (err) {
     console.error('Error generating PDF from CVData:', err);
     return res.status(500).json({
       success: false,
-      message: 'Failed to compile and render styled PDF CV.'
+      message: 'Failed to compile and render styled PDF CV: ' + err.message
     });
   }
 }
@@ -937,17 +946,21 @@ async function downloadHistoryFile(req, res) {
 
 async function saveCv(req, res) {
   try {
-    const { userId, cvData } = req.body;
-    if (!userId || !cvData) {
+    const { userId, cvData, latexCode } = req.body;
+    if (!userId || (!cvData && !latexCode)) {
       return res.status(400).json({
         success: false,
-        message: 'userId and cvData are required.'
+        message: 'userId and cvData or latexCode are required.'
       });
     }
 
+    const updateFields = {};
+    if (cvData) updateFields.cvData = cvData;
+    if (latexCode !== undefined) updateFields.latexCode = latexCode;
+
     const updatedCv = await Cv.findOneAndUpdate(
       { userId },
-      { cvData },
+      updateFields,
       { new: true, upsert: true }
     );
 
@@ -985,13 +998,79 @@ async function getCv(req, res) {
 
     return res.status(200).json({
       success: true,
-      cvData: cvRecord.cvData
+      cvData: cvRecord.cvData,
+      latexCode: cvRecord.latexCode
     });
   } catch (error) {
     console.error('Error retrieving active CV:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to retrieve active CV.'
+    });
+  }
+}
+
+async function parseCvToLatexController(req, res) {
+  try {
+    let cvText = req.body.cvText || '';
+
+    if (req.file) {
+      const fileBuffer = req.file.buffer;
+      const fileName = req.file.originalname.toLowerCase();
+
+      if (fileName.endsWith('.pdf')) {
+        cvText = await parserService.parsePdf(fileBuffer);
+      } else if (fileName.endsWith('.docx')) {
+        cvText = await parserService.parseDocx(fileBuffer);
+      } else {
+        cvText = fileBuffer.toString('utf8');
+      }
+    }
+
+    if (!cvText || cvText.trim() === '') {
+      return res.status(400).json({
+        success: false,
+        message: 'CV text or file is required.'
+      });
+    }
+
+    const result = await latexService.parseCvToLatex(cvText);
+
+    return res.status(200).json({
+      success: true,
+      message: 'Successfully parsed CV into LaTeX format.',
+      structuredData: result.structuredData,
+      latexCode: result.latexCode
+    });
+  } catch (error) {
+    console.error('Error in parseCvToLatexController:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to parse CV to LaTeX: ' + error.message
+    });
+  }
+}
+
+async function downloadLatexFile(req, res) {
+  try {
+    const { latexCode, filename } = req.body;
+    if (!latexCode) {
+      return res.status(400).json({
+        success: false,
+        message: 'latexCode is required.'
+      });
+    }
+
+    const downloadName = (filename || 'CV_AmishVerma_Template').replace(/\.tex$/i, '') + '.tex';
+
+    res.setHeader('Content-Type', 'text/x-tex');
+    res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+    return res.send(latexCode);
+  } catch (error) {
+    console.error('Error downloading LaTeX file:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to download LaTeX file.'
     });
   }
 }
@@ -1009,5 +1088,7 @@ module.exports = {
   deleteHistoryItem,
   downloadHistoryFile,
   saveCv,
-  getCv
+  getCv,
+  parseCvToLatexController,
+  downloadLatexFile
 };

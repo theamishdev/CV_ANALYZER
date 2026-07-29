@@ -1,4 +1,3 @@
-require('dns').setDefaultResultOrder('ipv4first');
 require('dotenv').config();
 const mongoose = require('mongoose');
 const app = require('./app');
@@ -27,21 +26,12 @@ function serverStart() {
     console.log(` Server is listening on port: ${PORT}`);
     console.log(` CORS Origin allowed: ${process.env.CORS_ORIGIN || 'http://localhost:4200'}`);
     console.log(`=============================================`);
-    
-    // Initialize Telegram Bot
-    const telegramBotService = require('./services/telegramBotService');
-    telegramBotService.initBot();
   });
 }
 
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.error(`Unhandled Rejection Error: ${err.message}`);
-  
-  if (err.message && err.message.includes('fetch failed')) {
-      console.error('Ignoring Telegram fetch failure to keep server alive.');
-      return;
-  }
   
   // Close server & exit process
   if (server) {

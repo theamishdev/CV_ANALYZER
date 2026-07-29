@@ -70,6 +70,11 @@ body {
   --history-card-bg: rgba(21, 28, 44, 0.7);
 }
 
+/* Hide fixed floating theme wrapper when LaTeX Studio page is rendered (since it embeds its own header toggle) */
+body:has(.latex-studio-container) .global-theme-toggle-wrapper {
+  display: none !important;
+}
+
 /* Common Auth Layout Styles */
 .auth-page-container {
   position: relative;

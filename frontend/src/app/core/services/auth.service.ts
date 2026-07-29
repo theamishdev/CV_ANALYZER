@@ -17,12 +17,25 @@ export class AuthService {
   readonly currentUser = signal<User | null>(null);
   readonly isAuthenticated = computed(() => this.currentUser() !== null);
 
-  saveActiveCv(userId: string, cvData: any): Observable<any> {
-    return this.http.post<any>(`${this.cvApiUrl}`, { userId, cvData });
+  saveActiveCv(userId: string, cvData: any, latexCode?: string): Observable<any> {
+    return this.http.post<any>(`${this.cvApiUrl}`, { userId, cvData, latexCode });
   }
 
   getActiveCv(userId: string): Observable<any> {
     return this.http.get<any>(`${this.cvApiUrl}/${userId}`);
+  }
+
+  parseCvToLatex(file?: File | null, cvText?: string): Observable<any> {
+    const formData = new FormData();
+    if (file) formData.append('cv', file);
+    if (cvText) formData.append('cvText', cvText);
+    return this.http.post<any>(`${this.cvApiUrl}/latex/parse`, formData);
+  }
+
+  downloadLatexFile(latexCode: string, filename?: string): Observable<Blob> {
+    return this.http.post(`${this.cvApiUrl}/latex/download-tex`, { latexCode, filename }, {
+      responseType: 'blob'
+    });
   }
 
   constructor() {

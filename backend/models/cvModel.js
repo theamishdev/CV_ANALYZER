@@ -11,6 +11,10 @@ const cvSchema = new mongoose.Schema({
   cvData: {
     type: mongoose.Schema.Types.Mixed,
     required: true
+  },
+  latexCode: {
+    type: String,
+    default: ''
   }
 }, {
   timestamps: true

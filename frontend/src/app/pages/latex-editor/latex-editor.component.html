@@ -1,0 +1,148 @@
+<div class="latex-studio-container">
+  <!-- Top Navigation Header -->
+  <header class="studio-header">
+    <div class="brand">
+      <a routerLink="/home" class="back-link">
+        <span class="material-icons">arrow_back</span>
+      </a>
+      <div class="title-group">
+        <h1>LaTeX CV Studio</h1>
+        <span class="subtitle">Amish Verma Professional Resume Template</span>
+      </div>
+    </div>
+    
+    <div class="actions-group">
+      <!-- Upload & Auto-Populate Button -->
+      <label class="btn btn-outline upload-btn">
+        <span class="material-icons">cloud_upload</span>
+        <span>Auto-Fill from CV</span>
+        <input type="file" (change)="onFileSelected($event)" accept=".pdf,.docx,.txt" hidden />
+      </label>
+      
+      <!-- Download .tex -->
+      <button class="btn btn-outline" (click)="downloadTexFile()" title="Download LaTeX Source File (.tex)">
+        <span class="material-icons">code</span>
+        <span>Download .tex</span>
+      </button>
+
+      <!-- Download / Export PDF -->
+      <button class="btn btn-primary" (click)="exportPdf()" title="Export Styled PDF Document">
+        <span class="material-icons">picture_as_pdf</span>
+        <span>Export PDF</span>
+      </button>
+
+      <!-- Save to MongoDB -->
+      <button class="btn btn-success" (click)="saveToMongoDB()" [disabled]="isSaving()">
+        <span class="material-icons">save</span>
+        <span>{{ isSaving() ? 'Saving...' : 'Save to DB' }}</span>
+      </button>
+
+      <app-theme-toggle></app-theme-toggle>
+    </div>
+  </header>
+
+  <!-- Main Split Studio Workspace -->
+  <div class="studio-workspace">
+    <!-- Left Pane: LaTeX Code Editor -->
+    <div class="editor-pane">
+      <div class="pane-header">
+        <div class="pane-title">
+          <span class="material-icons">integration_instructions</span>
+          <span>LaTeX Source Code</span>
+        </div>
+        <span class="badge">LaTeX Document</span>
+      </div>
+
+      <div class="editor-wrapper">
+        <textarea
+          class="latex-textarea"
+          [ngModel]="latexCode()"
+          (ngModelChange)="onCodeChange($event)"
+          placeholder="Paste or type LaTeX document code here..."
+          spellcheck="false">
+        </textarea>
+      </div>
+    </div>
+
+    <!-- Right Pane: Live Visual CV Preview -->
+    <div class="preview-pane">
+      <div class="pane-header">
+        <div class="pane-title">
+          <span class="material-icons">visibility</span>
+          <span>Live Visual Render Preview</span>
+        </div>
+        <span class="badge live">Live Sync</span>
+      </div>
+
+      <div class="preview-scroll-container">
+        <!-- Rendered CV Document Paper -->
+        <div class="cv-paper" id="latex-preview-content">
+          <!-- Header Center -->
+          <div class="cv-header">
+            <h1 class="cv-name">{{ dynamicCv().name || structuredData.name }}</h1>
+            <div class="cv-contact" *ngIf="dynamicCv().contactItems.length">
+              <ng-container *ngFor="let item of dynamicCv().contactItems; let last = last">
+                <a *ngIf="item.link" [href]="item.link" target="_blank">
+                  <span class="icon">{{ item.icon }}</span> {{ item.text }}
+                </a>
+                <span *ngIf="!item.link">
+                  <span class="icon">{{ item.icon }}</span> {{ item.text }}
+                </span>
+                <span class="sep" *ngIf="!last">|</span>
+              </ng-container>
+            </div>
+            
+            <div class="cv-contact" *ngIf="!dynamicCv().contactItems.length">
+              <a [href]="structuredData.linkedinUrl" target="_blank" *ngIf="structuredData.linkedinUrl">
+                <span class="icon">🔗</span> LinkedIn: {{ structuredData.linkedinText }}
+              </a>
+              <span class="sep" *ngIf="structuredData.linkedinUrl && structuredData.email">|</span>
+              <a [href]="'mailto:' + structuredData.email" *ngIf="structuredData.email">
+                <span class="icon">✉️</span> {{ structuredData.email }}
+              </a>
+              <span class="sep" *ngIf="structuredData.email && structuredData.githubUrl">|</span>
+              <a [href]="structuredData.githubUrl" target="_blank" *ngIf="structuredData.githubUrl">
+                <span class="icon">💻</span> GitHub: {{ structuredData.githubText }}
+              </a>
+              <span class="sep" *ngIf="structuredData.githubUrl && structuredData.phone">|</span>
+              <span *ngIf="structuredData.phone">
+                <span class="icon">📞</span> {{ structuredData.phone }}
+              </span>
+            </div>
+          </div>
+
+          <!-- DYNAMIC SECTIONS (Universal LaTeX Renderer) -->
+          <div class="cv-section" *ngFor="let sec of dynamicCv().sections">
+            <h2 class="cv-section-title">{{ sec.title }}</h2>
+            <div class="cv-section-content">
+              
+              <!-- Items with Titles / Subtitles / Dates -->
+              <div class="cv-item" *ngFor="let item of sec.items">
+                <div class="cv-item-header" *ngIf="item.title">
+                  <strong>{{ item.title }}</strong>
+                  <span class="cv-date" *ngIf="item.duration || item.date">{{ item.duration || item.date }}</span>
+                </div>
+                <div class="cv-sub" *ngIf="item.subtitle"><em>{{ item.subtitle }}</em></div>
+                <ul class="cv-bullets" *ngIf="item.bullets && item.bullets.length">
+                  <li *ngFor="let bullet of item.bullets">{{ bullet }}</li>
+                </ul>
+              </div>
+
+              <!-- Plain Bullets -->
+              <ul class="cv-bullets" *ngIf="sec.bullets && sec.bullets.length && (!sec.items || !sec.items.length)">
+                <li *ngFor="let bullet of sec.bullets">{{ bullet }}</li>
+              </ul>
+
+              <!-- Paragraphs -->
+              <div *ngIf="sec.paragraphs && sec.paragraphs.length && (!sec.items || !sec.items.length)">
+                <p *ngFor="let p of sec.paragraphs">{{ p }}</p>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

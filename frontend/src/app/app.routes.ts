@@ -21,6 +21,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'latex-editor',
+    loadComponent: () => import('./pages/latex-editor/latex-editor.component').then(c => c.LatexEditorComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: 'login'
   }
