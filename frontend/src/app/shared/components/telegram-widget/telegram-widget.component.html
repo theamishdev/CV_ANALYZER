@@ -1,0 +1,42 @@
+<div class="telegram-widget-container" [class.open]="isOpen()">
+  
+  <!-- Popup Card -->
+  <div class="telegram-popup" *ngIf="isOpen()">
+    <div class="popup-header">
+      <div class="header-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.48 15.82 14.43 15.48 16.25C15.33 17.02 15.05 17.28 14.78 17.31C14.19 17.36 13.74 16.92 13.17 16.54C12.28 15.96 11.77 15.6 10.9 15.02C9.9 14.36 10.55 13.99 11.13 13.4C11.28 13.25 13.88 10.88 13.93 10.66C13.94 10.63 13.94 10.56 13.9 10.52C13.86 10.48 13.8 10.5 13.75 10.51C13.68 10.53 12.53 11.29 10.32 12.78C9.99 13.01 9.7 13.12 9.44 13.11C9.15 13.1 8.61 12.95 8.21 12.82C7.72 12.66 7.33 12.57 7.37 12.3C7.39 12.16 7.59 12.02 7.97 11.87C10.3 10.85 11.86 10.2 12.64 9.87C14.88 8.94 15.35 8.78 15.65 8.78C15.72 8.78 15.86 8.79 15.96 8.86C16.04 8.92 16.08 9.01 16.09 9.09C16.09 9.14 16.08 9.24 16.06 9.34L16.64 8.8Z" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h3>CV Buddy Bot</h3>
+        <p>Scan your CV on Telegram!</p>
+      </div>
+      <button class="close-btn" (click)="closeWidget($event)">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    
+    <div class="popup-body">
+      <p class="instruction">Connect your account by verifying your phone number below.</p>
+      <div class="input-group">
+        <span class="material-icons phone-icon">phone</span>
+        <input type="tel" [(ngModel)]="phoneNumber" placeholder="+1 (555) 000-0000" class="phone-input" />
+      </div>
+      <button class="connect-btn" [disabled]="!phoneNumber() || phoneNumber().replace('^0-9', '').length < 5" (click)="connectTelegram()">
+        <svg class="send-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+        </svg>
+        <span>Connect to Telegram</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating Toggle Button -->
+  <button class="telegram-fab" (click)="toggleWidget()">
+    <svg class="tg-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 10.48 15.82 14.43 15.48 16.25C15.33 17.02 15.05 17.28 14.78 17.31C14.19 17.36 13.74 16.92 13.17 16.54C12.28 15.96 11.77 15.6 10.9 15.02C9.9 14.36 10.55 13.99 11.13 13.4C11.28 13.25 13.88 10.88 13.93 10.66C13.94 10.63 13.94 10.56 13.9 10.52C13.86 10.48 13.8 10.5 13.75 10.51C13.68 10.53 12.53 11.29 10.32 12.78C9.99 13.01 9.7 13.12 9.44 13.11C9.15 13.1 8.61 12.95 8.21 12.82C7.72 12.66 7.33 12.57 7.37 12.3C7.39 12.16 7.59 12.02 7.97 11.87C10.3 10.85 11.86 10.2 12.64 9.87C14.88 8.94 15.35 8.78 15.65 8.78C15.72 8.78 15.86 8.79 15.96 8.86C16.04 8.92 16.08 9.01 16.09 9.09C16.09 9.14 16.08 9.24 16.06 9.34L16.64 8.8Z" fill="currentColor"/>
+    </svg>
+  </button>
+  
+</div>
