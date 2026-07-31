@@ -4,6 +4,13 @@ CV Analyzer is a web application designed to analyze CVs and Resumes. It feature
 
 ---
 
+---
+
+## 🌐 Live Demo
+
+**Deployed Application:** https://cv-analyzer-frontend-b7l4.onrender.com/
+
+---
 ## 📖 Section-Specific Code Explanations
 For a detailed line-by-line explanation of the code for each section, please refer to the corresponding README file:
 - **Backend Code Documentation:** [backend/README.md](file:///c:/Users/Amish%20Verma/Desktop/Home/Projects/CV%20ANalyzer/backend/README.md)
