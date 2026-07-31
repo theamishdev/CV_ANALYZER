@@ -75,7 +75,7 @@ This guide provides step-by-step instructions for deploying the **CV Analyzer** 
 
 | Variable Name | Value | Notes |
 | :--- | :--- | :--- |
-| `BACKEND_URL` | `http://cv-analyzer-backend:3000/api/` | Connects via Render's Private Network, OR use `https://cv-analyzer-backend.onrender.com/api/` |
+| `BACKEND_URL` | `https://cv-analyzer-backend.onrender.com` | Set to your public Render Backend service URL *(no trailing slash)* |
 
 5. Click **Create Web Service**.
 6. Once deployed, copy your frontend URL (e.g., `https://cv-analyzer-frontend.onrender.com`).
