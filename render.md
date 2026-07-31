@@ -10,7 +10,7 @@ This guide provides step-by-step instructions for deploying the **CV Analyzer** 
 | :--- | :--- | :--- | :--- |
 | **Database** | MongoDB Atlas (Free Tier) | Managed DB | Required because Render does not host native managed MongoDB |
 | **Backend** | Render Web Service | Docker (`backend/Dockerfile`) | Uses Docker to bundle Python 3, ML dependencies, and Chromium/Puppeteer |
-| **Frontend** | Render Web Service | Docker (`frontend/Dockerfile`) | Uses Docker + Nginx to serve the built Angular app and reverse-proxy API calls |
+| **Frontend** | Render Web Service | Docker (`frontend/Dockerfile`) | Uses Docker + Nginx template (`envsubst`) to serve Angular & proxy API requests |
 
 ---
 
@@ -40,7 +40,7 @@ This guide provides step-by-step instructions for deploying the **CV Analyzer** 
    - **Branch**: `main` (or your active branch)
    - **Root Directory**: `backend`
    - **Runtime**: **Docker**
-   - **Dockerfile Path**: `./Dockerfile` (or `Dockerfile`)
+   - **Dockerfile Path**: `./Dockerfile`
    - **Instance Type**: **Free**
    - **Health Check Path**: `/health`
 
@@ -55,7 +55,7 @@ This guide provides step-by-step instructions for deploying the **CV Analyzer** 
 | `CORS_ORIGIN` | Your frontend Render URL (e.g. `https://cv-analyzer-frontend.onrender.com,http://localhost:4200`) |
 | `XAI_API_KEY` | *(Optional)* Your xAI Grok API key for LLM analysis |
 
-6. Click **Create Web Service**. Render will build the Docker container and start your backend service. Once deployed, note down your backend URL (e.g., `https://cv-analyzer-backend.onrender.com`).
+6. Click **Create Web Service**. Note down your backend service URL (e.g. `https://cv-analyzer-backend.onrender.com`).
 
 ---
 
@@ -71,23 +71,31 @@ This guide provides step-by-step instructions for deploying the **CV Analyzer** 
    - **Dockerfile Path**: `./Dockerfile`
    - **Instance Type**: **Free**
 
-4. Click **Create Web Service**. Render will build the Angular application and deploy it behind Nginx.
-5. Once deployed, copy your frontend URL (e.g., `https://cv-analyzer-frontend.onrender.com`).
-6. Update your **Backend Service Environment Variable**:
-   - Go back to your `cv-analyzer-backend` Web Service on Render → **Environment**.
+4. Under **Environment Variables**, add:
+
+| Variable Name | Value | Notes |
+| :--- | :--- | :--- |
+| `BACKEND_URL` | `http://cv-analyzer-backend:3000/api/` | Uses Render's fast Private Network, OR use `https://cv-analyzer-backend.onrender.com/api/` |
+
+> 💡 **Why `BACKEND_URL` is required**: Nginx uses Docker/Render entrypoint `envsubst` to dynamically set the backend proxy pass target at runtime. Providing `BACKEND_URL` prevents Nginx startup errors like `host not found in upstream "backend"`.
+
+5. Click **Create Web Service**. Render will build the Angular application and deploy it behind Nginx.
+6. Once deployed, copy your frontend URL (e.g., `https://cv-analyzer-frontend.onrender.com`).
+7. Update your **Backend Service Environment Variable**:
+   - Open `cv-analyzer-backend` Web Service on Render → **Environment**.
    - Set `CORS_ORIGIN` to include your frontend URL: `https://cv-analyzer-frontend.onrender.com`.
-   - Save changes (this will trigger a seamless restart of the backend).
+   - Save changes.
 
 ---
 
 ## ⚡ Option 2: 1-Click Deployment Using Render Blueprint (`render.yaml`)
 
-We have included a [`render.yaml`](file:///c:/Users/Amish%20Verma/Desktop/Home/Projects/CV%20ANalyzer/render.yaml) file in the project root. You can deploy both services automatically:
+We have included an updated [`render.yaml`](file:///c:/Users/Amish%20Verma/Desktop/Home/Projects/CV%20ANalyzer/render.yaml) file in the project root. You can deploy both services automatically:
 
 1. Push your repository to GitHub/GitLab.
 2. Open [Render Dashboard](https://dashboard.render.com/) → **New +** → **Blueprint**.
-3. Select your repository. Render will automatically parse `render.yaml` and prompt you to fill in required environment variables (`MONGODB_URI` and `CORS_ORIGIN`).
-4. Click **Apply**. Both backend and frontend services will be deployed automatically!
+3. Select your repository. Render will automatically parse `render.yaml` and configure both Backend and Frontend services with the correct `BACKEND_URL` private networking link (`http://cv-analyzer-backend:3000/api/`).
+4. Provide `MONGODB_URI` and click **Apply**.
 
 ---
 
@@ -97,12 +105,5 @@ We have included a [`render.yaml`](file:///c:/Users/Amish%20Verma/Desktop/Home/P
   ```json
   { "status": "ok", "timestamp": "..." }
   ```
-- **Prediction Test**: Send a POST request to `https://<your-backend-name>.onrender.com/api/auth/predict` to verify the local Python ML classification model.
+- **Prediction Test**: Send a POST request to `https://<your-backend-name>.onrender.com/api/auth/predict` to verify local Python ML classification.
 - **Frontend App**: Open your frontend URL to register/log in, paste job descriptions, analyze CVs, and export PDFs via Puppeteer.
-
----
-
-## 📌 Important Tips for Free Tier on Render
-
-- **Cold Starts**: Render's Free Instance spins down after 15 minutes of inactivity. The first request after spin-down may take ~30–50 seconds to boot the Docker container.
-- **Memory Limit (512MB)**: Puppeteer browser instances run in headful/headless mode inside the Docker container. Flags like `--disable-dev-shm-usage` and `--no-sandbox` have been configured in [`backend/services/pdfGeneratorService.js`](file:///c:/Users/Amish%20Verma/Desktop/Home/Projects/CV%20ANalyzer/backend/services/pdfGeneratorService.js) to stay within free memory limits.

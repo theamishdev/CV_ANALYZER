@@ -31,3 +31,5 @@ services:
     envVars:
       - key: PORT
         value: 80
+      - key: BACKEND_URL
+        value: http://cv-analyzer-backend:3000/api/
