@@ -10,8 +10,8 @@ import { User, AuthResponse } from '../../shared/models/user.model';
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly apiUrl = 'http://localhost:3000/api/auth';
-  private readonly cvApiUrl = 'http://localhost:3000/api/cv';
+  private readonly apiUrl = '/api/auth';
+  private readonly cvApiUrl = '/api/cv';
 
   // Signals for auth state management
   readonly currentUser = signal<User | null>(null);

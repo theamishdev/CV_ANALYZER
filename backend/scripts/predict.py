@@ -1,7 +1,13 @@
 import sys
 import os
 import json
+import warnings
+
+# Suppress warnings so output to stdout is strictly valid JSON
+warnings.filterwarnings('ignore')
+
 import joblib
+
 
 def main():
     if len(sys.argv) < 2:

@@ -141,5 +141,26 @@ Follow the instructions below to get your local environment set up.
 
 ---
 
+## 🐳 Docker Setup (Recommended)
+
+Run the entire application (MongoDB, Backend with Python ML & Puppeteer, Frontend with Nginx reverse proxy) in Docker:
+
+### 1. Build and run containers
+```bash
+docker compose up --build -d
+```
+
+### 2. Access the Application
+- **Frontend App**: `http://localhost` (or `http://localhost:4200`)
+- **Backend API**: `http://localhost/api/` (proxied by Nginx) or `http://localhost:3000/api/`
+- **MongoDB**: `mongodb://localhost:27017/cv_analyzer`
+
+### 3. Stop containers
+```bash
+docker compose down
+```
+
+---
+
 ## 📝 Ongoing Updates
 This README serves as the baseline for the CV Analyzer repository. As features are added, directories are extended, or new technologies are integrated, this file should be updated accordingly.

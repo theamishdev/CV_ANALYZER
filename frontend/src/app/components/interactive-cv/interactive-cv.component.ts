@@ -66,7 +66,7 @@ export class InteractiveCvComponent implements OnInit {
   }
 
   generatePDF() {
-    this.http.post('http://localhost:3000/api/cv/generate', this.cvData, { responseType: 'blob' })
+    this.http.post('/api/cv/generate', this.cvData, { responseType: 'blob' })
       .subscribe({
         next: (blob: Blob) => {
           const url = window.URL.createObjectURL(blob);

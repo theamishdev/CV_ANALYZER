@@ -1,0 +1,61 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cv_analyzer_db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=cv_analyzer
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    networks:
+      - cv_analyzer_net
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cv_analyzer_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongodb:27017/cv_analyzer
+      - CORS_ORIGIN=http://localhost:80,http://localhost:4200,http://localhost
+      - NODE_ENV=production
+      - SESSION_SECRET=${SESSION_SECRET:-docker_cv_analyzer_secret_key_2026}
+      - XAI_API_KEY=${XAI_API_KEY:-}
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - cv_analyzer_net
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cv_analyzer_frontend
+    restart: always
+    ports:
+      - "80:80"
+      - "4200:80"
+    depends_on:
+      - backend
+    networks:
+      - cv_analyzer_net
+
+volumes:
+  mongo_data:
+
+networks:
+  cv_analyzer_net:
+    driver: bridge
