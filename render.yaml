@@ -4,7 +4,7 @@ services:
     name: cv-analyzer-backend
     env: docker
     dockerContext: ./backend
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./backend/Dockerfile
     plan: free
     healthCheckPath: /health
     envVars:
@@ -26,10 +26,10 @@ services:
     name: cv-analyzer-frontend
     env: docker
     dockerContext: ./frontend
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./frontend/Dockerfile
     plan: free
     envVars:
       - key: PORT
         value: 80
       - key: BACKEND_URL
-        value: http://cv-analyzer-backend:3000/api/
+        value: http://cv-analyzer-backend:3000
