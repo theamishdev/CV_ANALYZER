@@ -50,6 +50,15 @@ app.use(session({
 app.use('/api/auth', authRoutes);
 app.use('/api/cv', cvRoutes);
 
+// Root endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'CV Analyzer API is running',
+    version: '1.0.0'
+  });
+});
+
 // Base route for health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });

@@ -54,7 +54,14 @@ export class LoginComponent {
       },
       error: (err) => {
         this.isLoading.set(false);
-        const errorMsg = err.error?.message || 'Invalid Email or Password';
+        let errorMsg = 'Invalid Email or Password';
+        if (err.error && typeof err.error === 'object' && err.error.message) {
+          errorMsg = err.error.message;
+        } else if (typeof err.error === 'string' && err.error.trim().length > 0) {
+          errorMsg = err.error;
+        } else if (err.message) {
+          errorMsg = err.message;
+        }
         this.toastService.error(errorMsg);
       }
     });
