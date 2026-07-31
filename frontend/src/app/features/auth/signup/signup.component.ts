@@ -72,9 +72,9 @@ export class SignupComponent {
         let errorMsg = 'Registration failed. Please check inputs.';
         if (err.error && typeof err.error === 'object' && err.error.message) {
           errorMsg = err.error.message;
-        } else if (typeof err.error === 'string' && err.error.trim().length > 0) {
+        } else if (typeof err.error === 'string' && !err.error.includes('<html') && err.error.trim().length > 0) {
           errorMsg = err.error;
-        } else if (err.message) {
+        } else if (err.message && !err.message.includes('<html')) {
           errorMsg = err.message;
         }
         this.toastService.error(errorMsg);
